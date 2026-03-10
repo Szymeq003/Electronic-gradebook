@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "uczniowie")
-@Getter
-@Setter
+@Table(name = "students")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Student {
@@ -19,18 +18,18 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "imie")
-    @NotBlank(message = "Imię jest wymagane")
+    @Column(name = "first_name")
+    @NotBlank(message = "First name is required")
     @Size(min = 2, max = 50)
     private String firstName;
 
-    @Column(name = "nazwisko")
-    @NotBlank(message = "Nazwisko jest wymagane")
+    @Column(name = "last_name")
+    @NotBlank(message = "Last name is required")
     @Size(min = 2, max = 50)
     private String lastName;
 
-    @Column(name = "klasa")
-    @NotBlank(message = "Klasa jest wymagana")
+    @Column(name = "school_class")
+    @NotBlank(message = "Class is required")
     private String schoolClass;
 
     @Column(name = "email")

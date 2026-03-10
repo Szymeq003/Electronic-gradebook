@@ -7,9 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "przedmioty")
-@Getter
-@Setter
+@Table(name = "subjects")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Subject {
@@ -18,12 +17,12 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nazwa")
-    @NotBlank(message = "Nazwa przedmiotu jest wymagana")
+    @Column(name = "name")
+    @NotBlank(message = "Subject name is required")
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "nauczyciel_id")
+    @JoinColumn(name = "teacher_id")
     private Teacher teacher;
 
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
