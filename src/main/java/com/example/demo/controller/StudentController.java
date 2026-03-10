@@ -22,11 +22,17 @@ public class StudentController {
             @RequestParam(required = false) String search,
             Model model) {
         model.addAttribute("students", studentService.findByClassIdAndSearch(classId, search));
-        model.addAttribute("newStudent", new Student());
         model.addAttribute("schoolClasses", schoolClassRepository.findAll());
         model.addAttribute("selectedClassId", classId);
         model.addAttribute("searchQuery", search);
         return "students";
+    }
+
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("newStudent", new Student());
+        model.addAttribute("schoolClasses", schoolClassRepository.findAll());
+        return "add_student";
     }
 
     @PostMapping("/add")

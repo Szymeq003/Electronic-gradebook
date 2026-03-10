@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Edytuj Ucznia</title>
+    <title>Dodaj Ucznia</title>
 </head>
 
 <body>
@@ -16,9 +16,9 @@
     </nav>
     <hr />
 
-    <h1>Edytuj Ucznia</h1>
+    <h1>Dodaj Ucznia</h1>
 
-    <form th:action="@{/students/edit/{id}(id=${student.id})}" method="post" th:object="${student}">
+    <form th:action="@{/students/add}" method="post" th:object="${newStudent}">
         <label>Imię: <input type="text" th:field="*{firstName}" /></label><br />
         <label>Nazwisko: <input type="text" th:field="*{lastName}" /></label><br />
         <label>Email: <input type="text" th:field="*{email}" /></label><br />
@@ -27,11 +27,8 @@
                 <option th:each="c : ${schoolClasses}" th:value="${c.id}" th:text="${c.name}"></option>
             </select>
         </label><br />
-        <button type="submit">Zapisz Zmiany</button>
+        <button type="submit">Zapisz ucznia</button>
     </form>
-
-    <br />
-    <a th:href="@{/students}">Powrót do listy uczniów</a>
 
 </body>
 

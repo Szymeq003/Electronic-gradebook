@@ -8,6 +8,14 @@
 
 <body>
 
+    <nav>
+        <a th:href="@{/}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/students/add}">Dodaj Ucznia</a> | 
+        <a th:href="@{/classes}">Klasy</a>
+    </nav>
+    <hr />
+
     <h1>Dodaj Nauczyciela</h1>
 
     <form th:action="@{/add}" method="post" th:object="${newTeacher}">
@@ -38,8 +46,9 @@
                 <td th:text="${t.lastName}"></td>
                 <td th:text="${t.email}"></td>
                 <td>
-                    <a th:href="@{/edit/{id}(id=${t.id})}">Edytuj</a> | 
-                    <a th:href="@{/delete/{id}(id=${t.id})}" onclick="return confirm('Czy na pewno chcesz usunąć tego nauczyciela?');">Usuń</a>
+                    <a th:href="@{/edit/{id}(id=${t.id})}">Edytuj</a> |
+                    <a th:href="@{/delete/{id}(id=${t.id})}"
+                        onclick="return confirm('Czy na pewno chcesz usunąć tego nauczyciela?');">Usuń</a>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(teachers)}">
