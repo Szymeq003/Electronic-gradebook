@@ -23,8 +23,12 @@ public class Subject {
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Teacher teacher;
 
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Grade> grades = new ArrayList<>();
 }

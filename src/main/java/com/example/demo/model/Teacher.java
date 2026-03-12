@@ -32,8 +32,12 @@ public class Teacher {
     private String email;
 
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Subject> subjects = new ArrayList<>();
 
     @OneToMany(mappedBy = "teacher")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<SchoolClass> schoolClasses = new ArrayList<>();
 }

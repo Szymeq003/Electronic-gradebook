@@ -22,9 +22,13 @@ public class SchoolClass {
     private String name;
 
     @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Student> students = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Teacher teacher;
 }
