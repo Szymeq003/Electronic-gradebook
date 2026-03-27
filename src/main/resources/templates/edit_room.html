@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edytuj Salę</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/teachers}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/classes}">Klasy</a> |
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/rooms}">Sale</a>
+    </nav>
+    <hr />
+
+    <h1>Edycja Istniejącej Sali Zajęciowej</h1>
+    
+    <div style="border: 1px dotted #999; padding: 15px; width: fit-content;">
+        <form th:action="@{/rooms/edit/{id}(id=${room.id})}" method="post" th:object="${room}">
+            <label>Zmień Nazwę Sali: 
+                <br /><br />
+                <input type="text" th:field="*{name}" style="padding: 5px;" required />
+            </label><br /><br />
+            <button type="submit" style="padding: 5px 10px;">💾 Zapisz Zmiany W Bazie</button>
+        </form>
+    </div>
+    <br />
+    <a th:href="@{/rooms}">Powrót do listy wszystkich Sal</a>
+</body>
+</html>

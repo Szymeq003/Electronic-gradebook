@@ -20,6 +20,8 @@ public class DataLoader implements CommandLineRunner {
     private final SubjectRepository subjectRepository;
     private final GradeRepository gradeRepository;
     private final SchoolClassRepository schoolClassRepository;
+    private final RoomRepository roomRepository;
+    private final AttendanceRepository attendanceRepository;
 
     @Override
     public void run(String... args) {
@@ -86,6 +88,14 @@ public class DataLoader implements CommandLineRunner {
             schoolClasses.add(schoolClassRepository.save(c));
         }
 
+        List<Room> rooms = new ArrayList<>();
+        for (int i = 1; i <= 25; i++) {
+            Room room = new Room();
+            room.setName("Sala " + (100 + i));
+            rooms.add(room);
+        }
+        roomRepository.saveAll(rooms);
+
         List<Student> students = new ArrayList<>();
         for (SchoolClass sc : schoolClasses) {
             for (int i = 0; i < 30; i++) {
@@ -134,6 +144,20 @@ public class DataLoader implements CommandLineRunner {
                 }
             }
             gradeRepository.saveAll(studentGrades);
+
+            List<Attendance> studentAtt = new ArrayList<>();
+            for (int i = 0; i < 40; i++) {
+                Attendance a = new Attendance();
+                a.setStudent(st);
+                a.setSubject(studentEnrolledSubjects.get(r.nextInt(studentEnrolledSubjects.size())));
+                a.setDate(LocalDate.of(2026, 1 + r.nextInt(6), 1 + r.nextInt(28)));
+                int statusRand = r.nextInt(100);
+                if (statusRand < 75) a.setStatus(AttendanceStatus.OBECNOSC);
+                else if (statusRand < 85) a.setStatus(AttendanceStatus.SPOZNIENIE);
+                else a.setStatus(AttendanceStatus.NIEOBECNOSC);
+                studentAtt.add(a);
+            }
+            attendanceRepository.saveAll(studentAtt);
         }
 
         System.out.println("\n============ DATA LOADER V3 (OGROMNY) ============");
@@ -141,6 +165,8 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("Klasy uczniowskie:       " + schoolClassRepository.count());
         System.out.println("Karty Przedmiotow:       " + subjectRepository.count());
         System.out.println("Laczna baza Uczniow:     " + studentRepository.count() + " ucz.");
+        System.out.println("Wszystkie Zarejestrowane Sale lekcyjne: " + roomRepository.count());
+        System.out.println("Zlogowana baza historii wpisow Obc/Spl.: " + attendanceRepository.count());
         System.out.println("Wszystkie Oceny systemu: " + gradeRepository.count());
         System.out.println("==================================================\n");
     }

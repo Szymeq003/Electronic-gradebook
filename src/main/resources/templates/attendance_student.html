@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Frekwencja Ucznia</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/teachers}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/classes}">Klasy</a> |
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/rooms}">Sale</a>
+    </nav>
+    <hr />
+
+    <h1 th:text="|Karta Obecności: ${student.firstName} ${student.lastName}|">Frekwencja Ucznia</h1>
+    
+    <div>
+        <h3>Zestawienie Frekwencyjne</h3>
+        <p><strong>Zgodność obecności na zajęciach: </strong> <span th:text="${#numbers.formatDecimal(statPercentage, 1, 2)} + ' %'"></span></p>
+        <ul>
+            <li>Udziałów we wszystkie dniach i podjętych zajęciach: <span th:text="${statTotal}"></span></li>
+            <li>Obecny punktualnie: <strong th:text="${statPresent}"></strong></li>
+            <li>Dotarł ze spóźnieniem: <span th:text="${statLate}"></span></li>
+            <li>Nieobecny - całkowity brak zaliczenia: <strong th:text="${statAbsent}"></strong></li>
+        </ul>
+    </div>
+
+    <!-- Dodawanie -->
+    <fieldset>
+        <legend>Wpisz frekwencję do e-dziennika</legend>
+        <form th:action="@{/attendance/add}" method="post" th:object="${newAttendance}">
+            <input type="hidden" name="studentId" th:value="${student.id}" />
+            
+            <label>Przedmiot Lekcji: 
+                <select name="subjectId" required>
+                    <option value="" disabled selected>-- Wybierz przedmiot --</option>
+                    <option th:each="sub : ${subjects}" th:value="${sub.id}" th:text="|${sub.name} (${sub.teacher.firstName} ${sub.teacher.lastName})|"></option>
+                </select>
+            </label>
+            <br/><br/>
+            
+            <label>Status (Dzień Bieżący): 
+                <select th:field="*{status}" required>
+                    <option value="" disabled selected>-- Ustal status obecności --</option>
+                    <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"></option>
+                </select>
+            </label>
+            <br/><br/>
+
+            <label>Odbyto w dniach: 
+                <input type="date" th:field="*{date}" required />
+            </label>
+            <br/><br/>
+            
+            <button type="submit">Podejmij Wpis</button>
+        </form>
+    </fieldset>
+
+    <!-- Lista -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Przedmiot</th>
+                <th>Sygnatura Statusu</th>
+                <th>Usuwanie (Akcja)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="a : ${attendances}">
+                <td th:text="${a.date}"></td>
+                <td th:text="|${a.subject.name} (${a.subject.teacher.lastName})|"></td>
+                <td th:text="${a.status}"></td>
+                <td>
+                    <a th:href="@{/attendance/delete/{id}(id=${a.id})}" onclick="return confirm('Spowoduje to bezwarunkowe usunięcie tego logu i manipulację statystykami. Jesteś 100% pewny?');">Usuń wpis</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(attendances)}">
+                <td colspan="4">Uczeń nie posiada jeszcze absolutnie żadnej wyrobionej historii na terenie wirtualnej szkoły.</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+    <a th:href="@{/students}">Powrót do weryfikacji uczniów</a>
+
+</body>
+</html>

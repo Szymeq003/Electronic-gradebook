@@ -57,6 +57,7 @@
                 <td th:text="${s.schoolClass != null ? s.schoolClass.name : 'Brak klasy'}"></td>
                 <td>
                     <a th:href="@{/grades/student/{id}(id=${s.id})}">Oceny</a> | 
+                    <a th:href="@{/attendance/student/{id}(id=${s.id})}">Frekwencja</a> |
                     <a th:href="@{/students/edit/{id}(id=${s.id})}">Edytuj</a> |
                     <a th:href="@{/students/delete/{id}(id=${s.id})}"
                         onclick="return confirm('Czy na pewno chcesz usunąć tego ucznia?');">Usuń</a>

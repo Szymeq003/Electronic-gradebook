@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Zarządzanie Salami</title>
+</head>
+<body>
+    <nav>
+        <a th:href="@{/teachers}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/classes}">Klasy</a> |
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/rooms}">Sale</a>
+    </nav>
+    <hr />
+
+    <h1>Zasoby Szkoły - Sale Lekcyjne</h1>
+
+    <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; display: inline-block;">
+        <h3>Dodaj Nową Salę</h3>
+        <form th:action="@{/rooms/add}" method="post" th:object="${newRoom}">
+            <label>Oznaczenie/Nazwa Sali: <input type="text" th:field="*{name}" placeholder="np. Sala 123" required /></label>
+            <button type="submit">Dodaj</button>
+        </form>
+    </div>
+
+    <table border="1" style="min-width: 400px; text-align: center;">
+        <thead>
+            <tr>
+                <th>ID do Systemu Planu</th>
+                <th>Nazwa / Oznaczenie Sali</th>
+                <th>Akcje Administrujące</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="r : ${rooms}">
+                <td th:text="${r.id}" style="color: gray;"></td>
+                <td th:text="${r.name}" style="font-weight: bold; font-size: 1.1em;"></td>
+                <td>
+                    <a th:href="@{/rooms/edit/{id}(id=${r.id})}">Edytuj</a> | 
+                    <a th:href="@{/rooms/delete/{id}(id=${r.id})}" onclick="return confirm('Usuwając tę salę usuniesz też powiązania do przyszłego Planu Zajęć! Na pewno?');">Usuń</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
