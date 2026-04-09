@@ -152,9 +152,9 @@ public class DataLoader implements CommandLineRunner {
                 a.setSubject(studentEnrolledSubjects.get(r.nextInt(studentEnrolledSubjects.size())));
                 a.setDate(LocalDate.of(2026, 1 + r.nextInt(6), 1 + r.nextInt(28)));
                 int statusRand = r.nextInt(100);
-                if (statusRand < 75) a.setStatus(AttendanceStatus.OBECNOSC);
-                else if (statusRand < 85) a.setStatus(AttendanceStatus.SPOZNIENIE);
-                else a.setStatus(AttendanceStatus.NIEOBECNOSC);
+                if (statusRand < 75) a.setStatus(AttendanceStatus.PRESENT);
+                else if (statusRand < 85) a.setStatus(AttendanceStatus.LATE);
+                else a.setStatus(AttendanceStatus.ABSENT);
                 studentAtt.add(a);
             }
             attendanceRepository.saveAll(studentAtt);

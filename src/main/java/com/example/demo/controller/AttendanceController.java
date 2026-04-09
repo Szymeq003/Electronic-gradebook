@@ -33,9 +33,9 @@ public class AttendanceController {
         
         // Dynamiczne wyliczanie statystyk matematycznych i objętości frekwencji w obiekcie
         long total = attendances.size();
-        long present = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.OBECNOSC).count();
-        long late = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.SPOZNIENIE).count();
-        long absent = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.NIEOBECNOSC).count();
+        long present = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.PRESENT).count();
+        long late = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.LATE).count();
+        long absent = attendances.stream().filter(a -> a.getStatus() == AttendanceStatus.ABSENT).count();
         
         double percentage = 0.0;
         if (total > 0) {
