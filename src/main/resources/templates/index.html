@@ -12,7 +12,11 @@
         <a th:href="@{/teachers}">Nauczyciele</a> |
         <a th:href="@{/students}">Uczniowie</a> |
         <a th:href="@{/classes}">Klasy</a> |
-        <a th:href="@{/subjects}">Przedmioty</a>
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/schedules}">Plan Lekcji</a> |
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer; font-size:inherit; padding:0;">Wyloguj się</button>
+        </form>
     </nav>
     <hr />
 

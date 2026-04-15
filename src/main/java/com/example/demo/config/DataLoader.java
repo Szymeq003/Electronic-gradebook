@@ -5,6 +5,7 @@ import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,9 +23,18 @@ public class DataLoader implements CommandLineRunner {
     private final SchoolClassRepository schoolClassRepository;
     private final RoomRepository roomRepository;
     private final AttendanceRepository attendanceRepository;
+    private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
+        if (appUserRepository.findByUsername("admin").isEmpty()) {
+            AppUser admin = new AppUser();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setRole(Role.ROLE_ADMIN);
+            appUserRepository.save(admin);
+        }
         if (teacherRepository.count() > 0) {
             return;
         }
@@ -55,6 +65,15 @@ public class DataLoader implements CommandLineRunner {
             t.setLastName(lName);
             t.setEmail((fName.substring(0, 1) + "." + lName + tCount + "@szkola.pl").toLowerCase().replace(" ", ""));
             teachers.add(teacherRepository.save(t));
+            
+            if (tCount < 5) {
+                AppUser teacherUser = new AppUser();
+                teacherUser.setUsername("nauczyciel" + (tCount + 1));
+                teacherUser.setPassword(passwordEncoder.encode("haslo123"));
+                teacherUser.setRole(Role.ROLE_TEACHER);
+                appUserRepository.save(teacherUser);
+            }
+            
             tCount++;
         }
 
@@ -97,6 +116,7 @@ public class DataLoader implements CommandLineRunner {
         roomRepository.saveAll(rooms);
 
         List<Student> students = new ArrayList<>();
+        int globalStudentCount = 0;
         for (SchoolClass sc : schoolClasses) {
             for (int i = 0; i < 30; i++) {
                 boolean isMale = r.nextBoolean();
@@ -113,6 +133,15 @@ public class DataLoader implements CommandLineRunner {
                 String unq = String.valueOf(r.nextInt(100) + students.size());
                 st.setEmail((fName.substring(0, 1) + "." + lName + unq + "@uczen.pl").toLowerCase().replace(" ", ""));
                 students.add(studentRepository.save(st));
+
+                if (globalStudentCount < 5) {
+                    AppUser studentUser = new AppUser();
+                    studentUser.setUsername("uczen" + (globalStudentCount + 1));
+                    studentUser.setPassword(passwordEncoder.encode("haslo123"));
+                    studentUser.setRole(Role.ROLE_STUDENT);
+                    appUserRepository.save(studentUser);
+                }
+                globalStudentCount++;
             }
         }
 

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Plan Lekcji</title>
+</head>
+<body>
+
+    <nav>
+        <a th:href="@{/teachers}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/classes}">Klasy</a> |
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/schedules}">Plan Lekcji</a>
+    </nav>
+    <hr />
+
+    <h1 th:text="${title}">Plan Lekcji</h1>
+
+    <a th:href="@{/schedules}"><button>Powrót do wyboru planu</button></a>
+    <br /><br />
+
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Dzień Tygodnia</th>
+                <th>Godziny</th>
+                <th>Przedmiot</th>
+                <th>Sala</th>
+                <th th:if="${entityType == 'class'}">Nauczyciel</th>
+                <th th:if="${entityType == 'teacher'}">Klasa</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="s : ${schedules}">
+                <td th:text="${s.dayOfWeek}"></td>
+                <td th:text="${s.startTime + ' - ' + s.endTime}"></td>
+                <td th:text="${s.subject != null ? s.subject.name : 'Brak'}"></td>
+                <td th:text="${s.room != null ? s.room.name : 'Brak sali'}"></td>
+                <td th:if="${entityType == 'class'}" th:text="${s.subject != null && s.subject.teacher != null ? s.subject.teacher.firstName + ' ' + s.subject.teacher.lastName : 'Brak'}"></td>
+                <td th:if="${entityType == 'teacher'}" th:text="${s.schoolClass != null ? s.schoolClass.name : 'Brak'}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(schedules)}">
+                <td colspan="6">Brak zaplanowanych zajęć.</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

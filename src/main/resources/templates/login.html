@@ -16,17 +16,19 @@
     <div style="max-width: 400px; margin: 0 auto; background: white; border: 1px solid #ddd; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <h2 style="text-align: center; color: #333; margin-top: 0;">Dzienniczek Szkolny</h2>
         <h3 style="text-align: center; color: #666; font-weight: normal; margin-bottom: 30px;">Zaloguj się</h3>
-        <form>
+        <form th:action="@{/login}" method="post">
             <div style="margin-bottom: 15px;">
-                <label style="display:block; margin-bottom: 5px; color: #555;">Email / Login:</label>
-                <input type="text" name="username" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" disabled value="demo_user" />
+                <label style="display:block; margin-bottom: 5px; color: #555;">Konto Administratora:</label>
+                <input type="text" name="username" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" required autofocus placeholder="Nazwa użytkownika" />
             </div>
             <div style="margin-bottom: 25px;">
                 <label style="display:block; margin-bottom: 5px; color: #555;">Hasło:</label>
-                <input type="password" name="password" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" disabled value="demo_pass" />
+                <input type="password" name="password" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" required placeholder="Hasło" />
             </div>
-            <p style="color: #d9534f; font-size: 0.85em; text-align: center; margin-bottom: 20px;">Panel tymczasowo zablokowany - faza deweloperska. Nawiguj za pomocą odnośników na górze ekranu.</p>
-            <button type="button" disabled style="width: 100%; padding: 10px; background-color: #5bc0de; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: not-allowed; opacity: 0.65;">Zaloguj (Niedostępne)</button>
+            <div th:if="${param.error}" style="color: #d9534f; font-size: 0.85em; text-align: center; margin-bottom: 20px;">
+                Błędna nazwa użytkownika lub hasło.
+            </div>
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #5bc0de; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">Zaloguj się</button>
         </form>
     </div>
 

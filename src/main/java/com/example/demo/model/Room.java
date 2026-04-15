@@ -23,5 +23,5 @@ public class Room {
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<Lesson> lessons;
+    private List<Schedule> schedules;
 }

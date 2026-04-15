@@ -6,11 +6,11 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "lessons")
+@Table(name = "schedules")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Lesson {
+public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

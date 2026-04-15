@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Wybór Planu Lekcji</title>
+</head>
+<body>
+
+    <nav>
+        <a th:href="@{/teachers}">Nauczyciele</a> | 
+        <a th:href="@{/students}">Uczniowie</a> | 
+        <a th:href="@{/classes}">Klasy</a> |
+        <a th:href="@{/subjects}">Przedmioty</a> |
+        <a th:href="@{/schedules}">Plan Lekcji</a>
+    </nav>
+    <hr />
+
+    <h1>Wybierz Plan Lekcji</h1>
+
+    <h2>Plany Klas</h2>
+    <ul>
+        <li th:each="c : ${classes}">
+            <a th:href="@{/schedules/class/{id}(id=${c.id})}" th:text="${'Plan klasy: ' + c.name}"></a>
+        </li>
+        <li th:if="${#lists.isEmpty(classes)}">Brak klas w bazie.</li>
+    </ul>
+
+    <h2>Plany Nauczycieli</h2>
+    <ul>
+        <li th:each="t : ${teachers}">
+            <a th:href="@{/schedules/teacher/{id}(id=${t.id})}" th:text="${'Plan nauczyciela: ' + t.firstName + ' ' + t.lastName}"></a>
+        </li>
+        <li th:if="${#lists.isEmpty(teachers)}">Brak nauczycieli w bazie.</li>
+    </ul>
+
+</body>
+</html>
