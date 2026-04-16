@@ -1,22 +1,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Szczegóły Ocen - Dzienniczek Admin</title>
+    <title>Szczegóły Ocen - Dzienniczek</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
 </head>
 <body>
-    <aside class="sidebar">
+    <aside class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
         <div class="sidebar-logo">
-            <span>Dzienniczek Admin</span>
+            <span sec:authorize="hasRole('ADMIN')">Dzienniczek Admin</span>
+            <span sec:authorize="hasRole('TEACHER')">Dzienniczek Nauczyciela</span>
         </div>
         <nav>
             <ul class="nav-links">
-                <li><a href="/admin">Dashboard</a></li>
-                <li><a href="/admin/teachers">Nauczyciele</a></li>
-                <li><a href="/admin/students" class="active">Uczniowie</a></li>
-                <li><a href="/admin/classes">Klasy</a></li>
-                <li><a href="/admin/subjects">Przedmioty</a></li>
-                <li><a href="/admin/rooms">Sale</a></li>
+                <!-- Menu dla Admina -->
+                <th:block sec:authorize="hasRole('ADMIN')">
+                    <li><a href="/admin">Dashboard</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                    <li><a href="/admin/classes">Klasy</a></li>
+                    <li><a href="/admin/subjects">Przedmioty</a></li>
+                    <li><a href="/admin/rooms">Sale</a></li>
+                </th:block>
+
+                <!-- Menu dla Nauczyciela -->
+                <th:block sec:authorize="hasRole('TEACHER')">
+                    <li><a href="/teacher/dashboard">Dashboard</a></li>
+                    <li><a href="/teacher/classes" class="active">Moje Klasy</a></li>
+                    <li><a href="/teacher/schedules">Plan Lekcji</a></li>
+                </th:block>
             </ul>
         </nav>
         <form th:action="@{/logout}" method="post" style="margin-top: auto;">

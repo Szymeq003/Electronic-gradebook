@@ -8,8 +8,9 @@
 </head>
 <body>
 
-    <div class="container" style="padding: 3rem 0;">
-        <a href="/teacher/dashboard" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do dashboardu</a>
+    <div class="container" style="padding: 3rem 0;" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+        <a sec:authorize="hasRole('TEACHER')" href="/teacher/dashboard" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do dashboardu</a>
+        <a sec:authorize="hasRole('ADMIN')" href="/admin/students" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do listy</a>
 
         <div class="header" style="margin-bottom: 3rem;">
             <h1 th:text="|Karta Obecności: ${student.firstName} ${student.lastName}|">Frekwencja Ucznia</h1>

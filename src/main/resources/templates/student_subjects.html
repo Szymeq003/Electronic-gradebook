@@ -1,7 +1,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zestawienie Ocen - Dzienniczek Admin</title>
+    <title>Karta Ocen - Dzienniczek</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <style>
         .grade-badge {
@@ -26,18 +26,29 @@
     </style>
 </head>
 <body>
-    <aside class="sidebar">
+    <aside class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
         <div class="sidebar-logo">
-            <span>Dzienniczek Admin</span>
+            <span sec:authorize="hasRole('ADMIN')">Dzienniczek Admin</span>
+            <span sec:authorize="hasRole('TEACHER')">Dzienniczek Nauczyciela</span>
         </div>
         <nav>
             <ul class="nav-links">
-                <li><a href="/admin">Dashboard</a></li>
-                <li><a href="/admin/teachers">Nauczyciele</a></li>
-                <li><a href="/admin/students" class="active">Uczniowie</a></li>
-                <li><a href="/admin/classes">Klasy</a></li>
-                <li><a href="/admin/subjects">Przedmioty</a></li>
-                <li><a href="/admin/rooms">Sale</a></li>
+                <!-- Menu dla Admina -->
+                <th:block sec:authorize="hasRole('ADMIN')">
+                    <li><a href="/admin">Dashboard</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                    <li><a href="/admin/classes">Klasy</a></li>
+                    <li><a href="/admin/subjects">Przedmioty</a></li>
+                    <li><a href="/admin/rooms">Sale</a></li>
+                </th:block>
+
+                <!-- Menu dla Nauczyciela -->
+                <th:block sec:authorize="hasRole('TEACHER')">
+                    <li><a href="/teacher/dashboard">Dashboard</a></li>
+                    <li><a href="/teacher/classes" class="active">Moje Klasy</a></li>
+                    <li><a href="/teacher/schedules">Plan Lekcji</a></li>
+                </th:block>
             </ul>
         </nav>
         <form th:action="@{/logout}" method="post" style="margin-top: auto;">
@@ -51,7 +62,10 @@
                 <h1 th:text="|Karta Ocen: ${student.firstName} ${student.lastName}|">Wykaz Ocen</h1>
                 <p class="text-muted">Całościowe zestawienie wyników dydaktycznych ze wszystkich przedmiotów.</p>
             </div>
-            <a href="/admin/students" class="btn btn-ghost">← Powrót do listy</a>
+            <div xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+                <a sec:authorize="hasRole('ADMIN')" href="/admin/students" class="btn btn-ghost">← Powrót do listy</a>
+                <a sec:authorize="hasRole('TEACHER')" th:href="@{/teacher/class/{id}(id=${student.schoolClass.id})}" class="btn btn-ghost">← Powrót do klasy</a>
+            </div>
         </div>
 
         <div class="table-container">
