@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nowa Wiadomość - Dzienniczek</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>Dzienniczek</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="${dashboardUrl}">Panel główny</a></li>
+                <li><a th:href="@{/messages}">Odebrane</a></li>
+                <li><a th:href="@{/messages/sent}">Wysłane</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="header" style="margin-bottom: 2rem;">
+            <h1>Nowa Wiadomość</h1>
+            <p class="text-muted">Wybierz odbiorcę i napisz treść.</p>
+        </div>
+
+        <div class="card compose-card">
+            <div th:if="${errors}" class="alert alert-danger" style="margin-bottom: 1.5rem; padding: 1rem; background: #fee2e2; border: 1px solid #ef4444; border-radius: 0.5rem; color: #b91c1c;">
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    <li th:each="error : ${errors}" th:text="${error.defaultMessage}"></li>
+                </ul>
+            </div>
+            <form th:action="@{/messages/send}" method="post">
+                <div class="form-group">
+                    <label for="recipientId">Odbiorca</label>
+                    <select name="recipientId" id="recipientId" class="input-control" required>
+                        <option value="" disabled selected>Wybierz adresata...</option>
+                        <option th:each="recipient : ${recipients}" 
+                                th:value="${recipient.id}" 
+                                th:text="${messageService.getDisplayName(recipient) + 
+                                          (recipient.student != null and recipient.student.schoolClass != null 
+                                              ? ' [' + recipient.student.schoolClass.name + '] ' 
+                                              : ' ') + 
+                                          '(' + (recipient.student != null ? recipient.student.email : 
+                                                 recipient.teacher != null ? recipient.teacher.email : 
+                                                 recipient.username) + ') - ' + roleNames[recipient.id]}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Temat</label>
+                    <input type="text" name="subject" id="subject" class="input-control" placeholder="Temat wiadomości..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Treść</label>
+                    <textarea name="content" id="content" class="input-control textarea-dynamic" placeholder="Napisz swoją wiadomość..." required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <a th:href="@{/messages}" class="btn btn-ghost">Anuluj</a>
+                    <button type="submit" class="btn btn-primary">Wyślij wiadomość</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Auto-resize textarea logic
+        const textarea = document.getElementById('content');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Allow Shift+Enter for new line, but track height
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                // Regular enter will grow the area via 'input' event
+            }
+        });
+    </script>
+
+</body>
+</html>

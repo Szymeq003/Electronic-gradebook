@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,7 +55,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
             <!-- Add Grade Form -->
-            <div class="card">
+            <div class="card" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
                     <span style="font-size: 1.5rem;">✍️</span>
                     <h3 style="margin: 0;">Nowa Ocena</h3>
@@ -87,7 +89,7 @@
                         <tr>
                             <th style="width: 25%;">Stopień</th>
                             <th>Data</th>
-                            <th style="width: 30%;">Akcje</th>
+                            <th style="width: 30%;" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,7 +100,7 @@
                                       th:text="${g.value}">5</span>
                             </td>
                             <td class="text-muted" th:text="${g.date}">2024-04-16</td>
-                            <td>
+                            <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
                                 <div style="display: flex; gap: 0.5rem;">
                                     <a th:href="@{/grades/edit/{id}(id=${g.id})}" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Edytuj</a>
                                     <a th:href="@{/grades/delete/{id}(id=${g.id})}" class="btn btn-danger" style="padding: 0.5rem 1rem;" 
@@ -115,3 +117,4 @@
         </div>
     </main>
 </body>
+</html>

@@ -30,14 +30,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Oznaczenie Sali</th>
                         <th>Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="r : ${rooms}">
-                        <td th:text="${r.id}" class="text-muted"></td>
                         <td style="font-weight: 700; font-size: 1.1rem; color: var(--primary);" th:text="${r.name}"></td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">

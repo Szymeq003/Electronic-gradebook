@@ -20,7 +20,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nazwa Klasy</th>
                         <th>Nauczyciel (Wychowawca)</th>
                         <th>Liczba Uczniów</th>
@@ -29,7 +28,6 @@
                 </thead>
                 <tbody>
                     <tr th:each="c : ${classes}">
-                        <td th:text="${c.id}"></td>
                         <td style="font-weight: 700; color: var(--primary);" th:text="${c.name}"></td>
                         <td th:text="${c.teacher != null ? c.teacher.firstName + ' ' + c.teacher.lastName : 'Brak wychowawcy'}"></td>
                         <td>

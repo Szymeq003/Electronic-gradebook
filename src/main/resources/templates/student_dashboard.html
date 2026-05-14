@@ -57,10 +57,17 @@
             <button type="submit" class="btn btn-danger">Wyloguj</button>
         </form>
 
-        <div class="header" style="margin-bottom: 3rem;">
+        <div class="header" style="margin-bottom: 2rem;">
             <h1 th:text="'Cześć, ' + ${student.firstName} + '!'">Cześć!</h1>
             <p class="text-muted" th:text="'Klasa ' + ${student.schoolClass.name}">Klasa 1A</p>
         </div>
+
+        <nav style="margin-bottom: 3rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="/student/grades" class="btn btn-ghost">Moje Oceny</a>
+            <a href="/student/schedule" class="btn btn-ghost">Plan Lekcji</a>
+            <a href="/student/attendance" class="btn btn-ghost">Obecność</a>
+            <a href="/messages" class="btn btn-ghost">Wiadomości</a>
+        </nav>
 
         <div class="dashboard-grid">
             <!-- GPA Widget -->
@@ -120,7 +127,6 @@
             </div>
         </div>
     </div>
-</body>
 </body>
 
 </html>

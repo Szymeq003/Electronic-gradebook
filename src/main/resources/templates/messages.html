@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiadomości - Dzienniczek</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>Dzienniczek</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a th:href="${dashboardUrl}">Panel główny</a></li>
+                <li><a th:href="@{/messages}">Odebrane</a></li>
+                <li><a th:href="@{/messages/sent}">Wysłane</a></li>
+            </ul>
+        </nav>
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button type="submit" class="btn btn-danger" style="width: 100%;">Wyloguj</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <div class="header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 th:text="${view == 'inbox' ? 'Skrzynka odbiorcza' : 'Wiadomości wysłane'}">Wiadomości</h1>
+                <p class="text-muted">Komunikacja wewnątrzszkolna.</p>
+            </div>
+            <a th:href="@{/messages/new}" class="btn btn-primary">+ Nowa wiadomość</a>
+        </div>
+
+        <div class="messaging-container">
+            <!-- Sidebar with list of messages -->
+            <div class="message-sidebar">
+                <div class="message-sidebar-header">
+                    <span style="font-weight: 700;">Wszystkie</span>
+                </div>
+                <div class="message-list">
+                    <div th:each="msg : ${messages}" class="message-item" 
+                         th:classappend="${!msg.isRead && view == 'inbox' ? 'unread' : ''}"
+                         th:onclick="'loadMessage(' + ${msg.id} + ')'">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span style="font-weight: 700; font-size: 0.875rem;" 
+                                  th:text="${view == 'inbox' ? msg.sender.username : msg.recipient.username}">Nazwa</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);" 
+                                  th:text="${#temporals.format(msg.sentAt, 'dd.MM HH:mm')}">Data</span>
+                        </div>
+                        <div style="font-weight: 600; font-size: 0.8125rem; margin-bottom: 0.25rem;" th:text="${msg.subject}">Temat</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                             th:text="${msg.content}">Podgląd treści...</div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(messages)}" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                        Brak wiadomości.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Detail View -->
+            <div class="message-content-view" id="messageContent">
+                <div th:fragment="messageContent" th:if="${message}">
+                    <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+                        <h2 th:text="${message.subject}">Temat</h2>
+                        <div class="message-info-meta">
+                            Od: <strong th:text="${message.sender.username}">Nadawca</strong><br>
+                            Do: <strong th:text="${message.recipient.username}">Odbiorca</strong><br>
+                            Data: <span th:text="${#temporals.format(message.sentAt, 'dd MMMM yyyy, HH:mm')}">Data</span>
+                        </div>
+                    </div>
+                    <div class="message-bubble received" style="max-width: 100%; white-space: pre-wrap;" th:text="${message.content}">
+                        Treść wiadomości...
+                    </div>
+                </div>
+                <div th:unless="${message}" style="text-align: center; margin-top: 10%; color: var(--text-muted);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">✉️</div>
+                    <h3>Wybierz wiadomość, aby ją przeczytać</h3>
+                    <p>Twoje wiadomości są bezpieczne i widoczne tylko dla adresatów.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function loadMessage(id) {
+            fetch('/messages/' + id)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('messageContent').innerHTML = html;
+                    // Optional: remove unread class from clicked item
+                });
+        }
+    </script>
+
+</body>
+</html>

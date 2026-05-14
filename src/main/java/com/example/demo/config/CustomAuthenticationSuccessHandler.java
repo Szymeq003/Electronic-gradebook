@@ -25,6 +25,12 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             if (authority.getAuthority().equals("ROLE_ADMIN")) {
                 redirectUrl = "/admin";
                 break;
+            } else if (authority.getAuthority().equals("ROLE_DIRECTOR")) {
+                redirectUrl = "/director/dashboard";
+                break;
+            } else if (authority.getAuthority().equals("ROLE_SECRETARY")) {
+                redirectUrl = "/secretary/dashboard";
+                break;
             } else if (authority.getAuthority().equals("ROLE_TEACHER")) {
                 redirectUrl = "/teacher/dashboard";
                 break;

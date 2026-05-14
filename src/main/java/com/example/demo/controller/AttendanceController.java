@@ -2,9 +2,11 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Attendance;
 import com.example.demo.model.AttendanceStatus;
+import com.example.demo.model.Role;
 import com.example.demo.model.Student;
 import com.example.demo.model.Subject;
 import com.example.demo.service.AttendanceService;
+import com.example.demo.service.SecurityService;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.SubjectService;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +25,19 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
     private final StudentService studentService;
     private final SubjectService subjectService;
+    private final SecurityService securityService;
 
     @GetMapping("/student/{studentId}")
     public String viewAttendanceForStudent(@PathVariable Long studentId, Model model) {
+        // Security check for students
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                if (user.getStudent() == null || !user.getStudent().getId().equals(studentId)) {
+                    throw new IllegalStateException("Brak uprawnień do przeglądania obecności innego ucznia");
+                }
+            }
+        });
+
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
 
@@ -65,6 +77,13 @@ public class AttendanceController {
     public String addAttendance(@ModelAttribute Attendance newAttendance, 
                                 @RequestParam("studentId") Long studentId, 
                                 @RequestParam("subjectId") Long subjectId) {
+        // Blokada dla uczniów
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                throw new IllegalStateException("Uczniowie nie mogą modyfikować obecności");
+            }
+        });
+
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
         Subject subject = subjectService.findById(subjectId)
@@ -83,6 +102,13 @@ public class AttendanceController {
 
     @GetMapping("/delete/{id}")
     public String deleteAttendance(@PathVariable Long id) {
+        // Blokada dla uczniów
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                throw new IllegalStateException("Uczniowie nie mogą modyfikować obecności");
+            }
+        });
+
         Attendance attendance = attendanceService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid attendance Id:" + id));
         Long studentId = attendance.getStudent().getId();

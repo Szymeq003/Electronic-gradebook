@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administratora - Dzienniczek</title>
+    <title>Panel Dyrekcji - Dzienniczek</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <style>
         .admin-card { display: flex; align-items: center; gap: 1.5rem; }
@@ -18,18 +18,15 @@
 <body>
 
     <aside class="sidebar">
-        <div class="sidebar-logo">
-            <span>Dzienniczek Admin</span>
+        <div class="sidebar-logo" style="color: var(--accent-success);">
+            <span>Dzienniczek Dyrekcja</span>
         </div>
         <nav>
             <ul class="nav-links">
-                <li><a href="/admin" class="active">Dashboard</a></li>
-                <li><a href="/admin/teachers">Nauczyciele</a></li>
-                <li><a href="/admin/students">Uczniowie</a></li>
-                <li><a href="/admin/classes">Klasy</a></li>
-                <li><a href="/admin/subjects">Przedmioty</a></li>
-                <li><a href="/admin/rooms">Sale</a></li>
+                <li><a href="/director/dashboard" class="active">Podsumowanie</a></li>
                 <li><a href="/messages">Wiadomości</a></li>
+                <li><a href="/admin/teachers">Lista Nauczycieli</a></li>
+                <li><a href="/admin/students">Lista Uczniów</a></li>
             </ul>
         </nav>
         <form th:action="@{/logout}" method="post" style="margin-top: auto;">
@@ -39,54 +36,50 @@
 
     <main class="main-content">
         <div class="header">
-            <h1 style="font-size: 3rem;">Witaj, Administratorze!</h1>
-            <p class="text-muted">Centrum zarządzania Twoją szkołą.</p>
+            <h1 style="font-size: 3rem;">Witaj, Dyrekcjo!</h1>
+            <p class="text-muted">Podgląd statystyk i funkcjonowania szkoły (tryb bezpieczny).</p>
         </div>
 
         <div class="dashboard-grid">
-            <!-- Teachers -->
-            <a href="/admin/teachers" class="card admin-card">
+            <div class="card admin-card">
                 <div class="icon-box bg-blue">👨‍🏫</div>
                 <div>
                     <h2 th:text="${teacherCount}">0</h2>
                     <p class="text-muted">Nauczycieli</p>
                 </div>
-            </a>
+            </div>
 
-            <!-- Students -->
-            <a href="/admin/students" class="card admin-card">
+            <div class="card admin-card">
                 <div class="icon-box bg-emerald">👨‍🎓</div>
                 <div>
                     <h2 th:text="${studentCount}">0</h2>
                     <p class="text-muted">Uczniów</p>
                 </div>
-            </a>
+            </div>
 
-            <!-- Classes -->
-            <a href="/admin/classes" class="card admin-card">
+            <div class="card admin-card">
                 <div class="icon-box bg-purple">🏫</div>
                 <div>
                     <h2 th:text="${classCount}">0</h2>
                     <p class="text-muted">Klas szkolnych</p>
                 </div>
-            </a>
+            </div>
 
-            <!-- Subjects -->
-            <a href="/admin/subjects" class="card admin-card">
+            <div class="card admin-card">
                 <div class="icon-box bg-amber">📚</div>
                 <div>
                     <h2 th:text="${subjectCount}">0</h2>
                     <p class="text-muted">Przedmiotów</p>
                 </div>
-            </a>
+            </div>
         </div>
 
         <div class="card mt-4">
-            <h3>Szybki Start</h3>
-            <p class="text-muted mb-4">Wybierz sekcję po lewej lub skorzystaj ze skrótów powyżej, aby zarządzać danymi.</p>
+            <h3>Powiadomienia i Komunikaty</h3>
+            <p class="text-muted mb-4">Skorzystaj z modułu wiadomości, aby skontaktować się z kadrą lub sekretariatem.</p>
             <div style="display: flex; gap: 1rem;">
-                <a href="/admin/students/add" class="btn btn-primary">+ Dodaj Ucznia</a>
-                <a href="/admin/teachers" class="btn btn-ghost">Lista Nauczycieli</a>
+                <a href="/messages/new" class="btn btn-primary">Wyślij wiadomość</a>
+                <a href="/messages" class="btn btn-ghost">Skrzynka odbiorcza</a>
             </div>
         </div>
     </main>

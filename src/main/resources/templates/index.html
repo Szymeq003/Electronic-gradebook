@@ -38,7 +38,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Imię i Nazwisko</th>
                         <th>Email</th>
                         <th>Akcje</th>
@@ -46,8 +45,7 @@
                 </thead>
                 <tbody>
                     <tr th:each="t : ${teachers}">
-                        <td th:text="${t.id}"></td>
-                        <td style="font-weight: 700;" th:text="${t.firstName} + ' ' + ${t.lastName}"></td>
+                        <td style="font-weight: 700;" th:text="${t.lastName} + ' ' + ${t.firstName}"></td>
                         <td th:text="${t.email}"></td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">

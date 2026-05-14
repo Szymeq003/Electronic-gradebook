@@ -1,0 +1,19 @@
+package com.example.demo.model;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class SendMessageRequest {
+
+    private Long recipientId;
+
+    @NotBlank(message = "Temat nie może być pusty")
+    @Size(max = 200, message = "Temat może mieć maksymalnie 200 znaków")
+    private String subject;
+
+    @NotBlank(message = "Treść wiadomości nie może być pusta")
+    @Size(max = 5000, message = "Treść może mieć maksymalnie 5000 znaków")
+    private String content;
+}

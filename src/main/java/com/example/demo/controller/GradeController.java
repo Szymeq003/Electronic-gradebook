@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Grade;
+import com.example.demo.model.Role;
 import com.example.demo.model.Student;
 import com.example.demo.model.Subject;
 import com.example.demo.service.GradeService;
+import com.example.demo.service.SecurityService;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.SubjectService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class GradeController {
     private final GradeService gradeService;
     private final StudentService studentService;
     private final SubjectService subjectService;
+    private final SecurityService securityService;
 
     @lombok.Data
     @lombok.AllArgsConstructor
@@ -34,6 +37,15 @@ public class GradeController {
 
     @GetMapping("/student/{studentId}")
     public String viewSubjectsForStudent(@PathVariable Long studentId, Model model) {
+        // Security check for students
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                if (user.getStudent() == null || !user.getStudent().getId().equals(studentId)) {
+                    throw new IllegalStateException("Brak uprawnień do przeglądania ocen innego ucznia");
+                }
+            }
+        });
+
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
 
@@ -80,6 +92,15 @@ public class GradeController {
 
     @GetMapping("/student/{studentId}/subject/{subjectId}")
     public String viewGradesForSubject(@PathVariable Long studentId, @PathVariable Long subjectId, Model model) {
+        // Security check for students
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                if (user.getStudent() == null || !user.getStudent().getId().equals(studentId)) {
+                    throw new IllegalStateException("Brak uprawnień do przeglądania ocen innego ucznia");
+                }
+            }
+        });
+
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
         Subject subject = subjectService.findById(subjectId)
@@ -113,6 +134,7 @@ public class GradeController {
     @PostMapping("/add")
     public String addGrade(@ModelAttribute Grade newGrade, @RequestParam("studentId") Long studentId,
             @RequestParam("subjectId") Long subjectId) {
+        blockStudentWriteAccess();
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
         Subject subject = subjectService.findById(subjectId)
@@ -131,6 +153,7 @@ public class GradeController {
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
+        blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
         model.addAttribute("grade", grade);
@@ -139,6 +162,7 @@ public class GradeController {
 
     @PostMapping("/edit/{id}")
     public String updateGrade(@PathVariable Long id, @ModelAttribute Grade updatedGrade) {
+        blockStudentWriteAccess();
         Grade existingGrade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
 
@@ -152,6 +176,7 @@ public class GradeController {
 
     @GetMapping("/delete/{id}")
     public String deleteGrade(@PathVariable Long id) {
+        blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
         Long studentId = grade.getStudent().getId();
@@ -159,5 +184,13 @@ public class GradeController {
 
         gradeService.delete(id);
         return "redirect:/grades/student/" + studentId + "/subject/" + subjectId;
+    }
+
+    private void blockStudentWriteAccess() {
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_STUDENT) {
+                throw new IllegalStateException("Uczniowie nie mogą modyfikować ocen");
+            }
+        });
     }
 }

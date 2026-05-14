@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.model.Teacher;
 import com.example.demo.repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +15,7 @@ public class TeacherService {
     private final TeacherRepository teacherRepository;
 
     public List<Teacher> findAll() {
-        return teacherRepository.findAll();
+        return teacherRepository.findAll(Sort.by(Sort.Direction.ASC, "lastName", "firstName"));
     }
 
     public Optional<Teacher> findById(Long id) {

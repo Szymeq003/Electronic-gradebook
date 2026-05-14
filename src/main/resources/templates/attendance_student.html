@@ -11,6 +11,7 @@
     <div class="container" style="padding: 3rem 0;" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
         <a sec:authorize="hasRole('TEACHER')" href="/teacher/dashboard" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do dashboardu</a>
         <a sec:authorize="hasRole('ADMIN')" href="/admin/students" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do listy</a>
+        <a sec:authorize="hasRole('STUDENT')" href="/student/dashboard" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do panelu</a>
 
         <div class="header" style="margin-bottom: 3rem;">
             <h1 th:text="|Karta Obecności: ${student.firstName} ${student.lastName}|">Frekwencja Ucznia</h1>
@@ -42,7 +43,7 @@
 
             <!-- Form & List -->
             <div style="display: flex; flex-direction: column; gap: 2rem;">
-                <div class="card">
+                <div class="card" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
                     <h3 style="margin-bottom: 1.5rem;">Dodaj wpis do dziennika</h3>
                     <form th:action="@{/attendance/add}" method="post" th:object="${newAttendance}">
                         <input type="hidden" name="studentId" th:value="${student.id}" />
@@ -80,7 +81,7 @@
                                 <th>Data</th>
                                 <th>Przedmiot</th>
                                 <th>Status</th>
-                                <th>Akcja</th>
+                                <th sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">Akcja</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -92,7 +93,7 @@
                                           th:text="${a.status}"
                                           th:style="${a.status == 'NIEOBECNY' ? 'background: #fee2e2; color: #ef4444; border: 1px solid #fecaca;' : ''}"></span>
                                 </td>
-                                <td>
+                                <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
                                     <a th:href="@{/attendance/delete/{id}(id=${a.id})}" class="text-danger" style="color: var(--accent-danger); font-size: 0.875rem; font-weight: 600;">Usuń</a>
                                 </td>
                             </tr>

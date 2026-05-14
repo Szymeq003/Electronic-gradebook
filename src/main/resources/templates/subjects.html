@@ -20,7 +20,6 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nazwa Przedmiotu</th>
                         <th>Nauczyciel Prowadzący</th>
                         <th>Akcje</th>
@@ -28,7 +27,6 @@
                 </thead>
                 <tbody>
                     <tr th:each="s : ${subjects}">
-                        <td th:text="${s.id}"></td>
                         <td style="font-weight: 700; color: var(--primary);" th:text="${s.name}"></td>
                         <td th:text="${s.teacher != null ? 'mgr ' + s.teacher.firstName + ' ' + s.teacher.lastName : 'Brak opiekuna'}"></td>
                         <td>

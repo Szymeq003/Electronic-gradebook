@@ -4,6 +4,7 @@ import com.example.demo.model.SchoolClass;
 
 import com.example.demo.model.Student;
 import com.example.demo.model.Teacher;
+import com.example.demo.repository.AppUserRepository;
 import com.example.demo.repository.SchoolClassRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeacherRepository;
@@ -25,21 +26,24 @@ public class ScheduleController {
     private final SchoolClassRepository schoolClassRepository;
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
+    private final AppUserRepository appUserRepository;
 
     @GetMapping
     public String index(Authentication authentication, Model model) {
         if (authentication != null) {
-            String email = authentication.getName();
+            String username = authentication.getName();
             
             if (hasRole(authentication, "ROLE_TEACHER")) {
-                return teacherRepository.findByEmail(email)
-                        .map(t -> "redirect:/schedules/teacher/" + t.getId())
+                return appUserRepository.findByUsername(username)
+                        .map(u -> u.getTeacher() != null ? "redirect:/schedules/teacher/" + u.getTeacher().getId() : "redirect:/teacher/dashboard")
                         .orElse("redirect:/teacher/dashboard");
             }
             
             if (hasRole(authentication, "ROLE_STUDENT")) {
-                return studentRepository.findByEmail(email)
-                        .map(s -> s.getSchoolClass() != null ? "redirect:/schedules/class/" + s.getSchoolClass().getId() : "redirect:/student/dashboard")
+                return appUserRepository.findByUsername(username)
+                        .map(u -> (u.getStudent() != null && u.getStudent().getSchoolClass() != null) 
+                            ? "redirect:/schedules/class/" + u.getStudent().getSchoolClass().getId() 
+                            : "redirect:/student/dashboard")
                         .orElse("redirect:/student/dashboard");
             }
         }
@@ -54,7 +58,8 @@ public class ScheduleController {
         // Security check
         if (!hasRole(authentication, "ROLE_ADMIN")) {
             if (hasRole(authentication, "ROLE_STUDENT")) {
-                Student student = studentRepository.findByEmail(authentication.getName()).orElse(null);
+                Student student = appUserRepository.findByUsername(authentication.getName())
+                        .map(u -> u.getStudent()).orElse(null);
                 if (student == null || student.getSchoolClass() == null || !student.getSchoolClass().getId().equals(id)) {
                     return student != null && student.getSchoolClass() != null 
                            ? "redirect:/schedules/class/" + student.getSchoolClass().getId() 
@@ -79,7 +84,8 @@ public class ScheduleController {
         // Security check
         if (!hasRole(authentication, "ROLE_ADMIN")) {
             if (hasRole(authentication, "ROLE_TEACHER")) {
-                Teacher teacher = teacherRepository.findByEmail(authentication.getName()).orElse(null);
+                Teacher teacher = appUserRepository.findByUsername(authentication.getName())
+                        .map(u -> u.getTeacher()).orElse(null);
                 if (teacher == null || !teacher.getId().equals(id)) {
                     return teacher != null ? "redirect:/schedules/teacher/" + teacher.getId() : "redirect:/teacher/dashboard";
                 }

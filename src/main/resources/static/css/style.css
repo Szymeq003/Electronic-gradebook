@@ -339,6 +339,114 @@ tr:hover td {
     color: var(--text-muted);
 }
 
+/* --- Messaging System --- */
+.messaging-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+    height: calc(100vh - 200px);
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.message-sidebar {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+}
+
+.message-sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.message-item {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.message-item:hover {
+    background: var(--bg-main);
+}
+
+.message-item.unread {
+    background: #f0f9ff;
+    border-left: 4px solid var(--primary);
+}
+
+.message-content-view {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.message-bubble {
+    max-width: 80%;
+    padding: 1.25rem 1.5rem;
+    border-radius: 1.25rem;
+    margin-bottom: 1rem;
+    position: relative;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.message-bubble.received {
+    background: var(--bg-main);
+    color: var(--text-main);
+    align-self: flex-start;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-bubble.sent {
+    background: var(--primary);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message-info-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+/* New Message Form */
+.compose-card {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.textarea-dynamic {
+    min-height: 150px;
+    resize: none;
+    overflow-y: hidden;
+    line-height: 1.6;
+    transition: height 0.2s ease;
+}
+
+.recipient-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
 @media (max-width: 1024px) {
     .schedule-grid {
         grid-template-columns: 1fr;

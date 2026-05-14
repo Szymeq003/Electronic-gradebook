@@ -43,7 +43,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>Lp.</th>
                         <th>Imię i Nazwisko</th>
                         <th>Email</th>
                         <th>Klasa</th>
@@ -51,9 +51,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="s : ${students}">
-                        <td th:text="${s.id}"></td>
-                        <td style="font-weight: 700;" th:text="${s.firstName} + ' ' + ${s.lastName}"></td>
+                    <tr th:each="s, iter : ${students}">
+                        <td th:text="${iter.count}"></td>
+                        <td style="font-weight: 700;" th:text="${s.lastName} + ' ' + ${s.firstName}"></td>
                         <td th:text="${s.email}" class="text-muted"></td>
                         <td>
                             <span class="badge badge-success" th:text="${s.schoolClass != null ? s.schoolClass.name : 'Brak'}"></span>

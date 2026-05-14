@@ -48,6 +48,16 @@ public class TeacherDashboardController {
 
     @GetMapping("/exam/delete/{id}")
     public String deleteExam(@PathVariable Long id) {
+        Teacher teacher = securityService.getCurrentTeacher()
+                .orElseThrow(() -> new IllegalStateException("Nauczyciel nie jest zalogowany"));
+        
+        Exam exam = examRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sprawdzian nie istnieje"));
+        
+        if (!exam.getTeacher().getId().equals(teacher.getId())) {
+            throw new IllegalStateException("Nie możesz usunąć sprawdzianu innego nauczyciela");
+        }
+        
         examRepository.deleteById(id);
         return "redirect:/teacher/dashboard";
     }

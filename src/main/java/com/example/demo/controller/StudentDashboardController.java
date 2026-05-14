@@ -64,4 +64,24 @@ public class StudentDashboardController {
         model.addAttribute("gradesBySubject", gradesBySubject);
         return "student_grades_view";
     }
+
+    @GetMapping("/schedule")
+    public String schedule(Model model) {
+        Student student = securityService.getCurrentStudent()
+                .orElseThrow(() -> new IllegalStateException("Zalogowany użytkownik nie jest uczniem"));
+        
+        if (student.getSchoolClass() == null) {
+            return "redirect:/student/dashboard";
+        }
+        
+        return "redirect:/schedules/class/" + student.getSchoolClass().getId();
+    }
+
+    @GetMapping("/attendance")
+    public String attendance(Model model) {
+        Student student = securityService.getCurrentStudent()
+                .orElseThrow(() -> new IllegalStateException("Zalogowany użytkownik nie jest uczniem"));
+        
+        return "redirect:/attendance/student/" + student.getId();
+    }
 }

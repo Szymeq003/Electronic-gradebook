@@ -5,11 +5,14 @@ import lombok.*;
 
 @Entity
 @Table(name = "app_users", indexes = {@Index(name = "idx_appuser_username", columnList = "username")})
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AppUser {
     
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
