@@ -452,3 +452,54 @@ tr:hover td {
         grid-template-columns: 1fr;
     }
 }
+
+/* === Recipient Search Component === */
+.recipient-search-group {
+    position: relative;
+}
+
+.recipient-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.recipient-item {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+.recipient-item:last-child {
+    border-bottom: none;
+}
+
+.recipient-item:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.recipient-no-results {
+    padding: 0.8rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.recipient-error {
+    color: var(--accent-danger);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+}

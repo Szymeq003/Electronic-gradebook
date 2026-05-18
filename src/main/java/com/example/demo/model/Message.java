@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.example.demo.config.MessageEncryptionConverter;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,9 +29,11 @@ public class Message {
     private AppUser recipient;
 
     @Column(nullable = false)
+    @Convert(converter = MessageEncryptionConverter.class)
     private String subject;
 
     @Column(columnDefinition = "TEXT", nullable = false)
+    @Convert(converter = MessageEncryptionConverter.class)
     private String content;
 
     @Column(nullable = false)

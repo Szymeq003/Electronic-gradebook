@@ -52,7 +52,7 @@ public class DataLoader implements CommandLineRunner {
             secretary.setRole(Role.ROLE_SECRETARY);
             appUserRepository.save(secretary);
         }
-        if (teacherRepository.count() > 0) {
+        if (studentRepository.count() > 0) {
             return;
         }
 

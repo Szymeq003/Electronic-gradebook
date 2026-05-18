@@ -5,6 +5,7 @@ import com.example.demo.model.Role;
 import com.example.demo.model.SendMessageRequest;
 import com.example.demo.service.MessageService;
 import com.example.demo.service.SecurityService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.BindingResult;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ public class MessageController {
 
     private final MessageService messageService;
     private final SecurityService securityService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping
     public String inbox(Model model) {
@@ -107,5 +110,26 @@ public class MessageController {
         model.addAttribute("roleNames", roleNames);
         model.addAttribute("messageService", messageService);
         model.addAttribute("dashboardUrl", getDashboardUrl(currentUser));
+
+        List<Map<String, String>> recipientsList = recipients.stream()
+            .map(r -> {
+                Map<String, String> m = new java.util.LinkedHashMap<>();
+                m.put("id",    String.valueOf(r.getId()));
+                m.put("name",  messageService.getDisplayName(r));
+                m.put("role",  messageService.getRoleDisplayName(r));
+                m.put("email", r.getStudent() != null ? r.getStudent().getEmail()
+                              : r.getTeacher() != null ? r.getTeacher().getEmail()
+                              : r.getUsername());
+                m.put("klasa", r.getStudent() != null && r.getStudent().getSchoolClass() != null
+                              ? r.getStudent().getSchoolClass().getName() : "");
+                return m;
+            })
+            .collect(Collectors.toList());
+
+        try {
+            model.addAttribute("recipientsJson", objectMapper.writeValueAsString(recipientsList));
+        } catch (Exception e) {
+            model.addAttribute("recipientsJson", "[]");
+        }
     }
 }
