@@ -100,7 +100,7 @@ public class AttendanceController {
         return "redirect:/attendance/student/" + studentId;
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteAttendance(@PathVariable Long id) {
         // Blokada dla uczniów
         securityService.getCurrentAppUser().ifPresent(user -> {

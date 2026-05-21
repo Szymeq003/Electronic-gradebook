@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie planem – Dzienniczek</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+<div class="container" style="padding: 3rem 0;">
+    <a th:href="${backUrl}" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do pulpitu</a>
+    <div class="header" style="margin-bottom: 2rem;">
+        <h1>Zarządzanie planem zajęć</h1>
+        <p class="text-muted">Wybierz klasę, aby edytować jej plan lekcji.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 1rem; margin-bottom: 3rem;">
+        <a th:each="c : ${classes}"
+           th:href="@{/schedule-admin/class/{id}(id=${c.id})}"
+           class="card"
+           style="text-align: center; padding: 1.5rem; font-weight: 700; font-size: 1.1rem; text-decoration: none;"
+           th:text="'Klasa ' + ${c.name}">1A</a>
+        <div th:if="${#lists.isEmpty(classes)}" style="color: #9ca3af;">Brak klas w bazie.</div>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+        <h3>📅 Szkolne dni wolne</h3>
+        <p class="text-muted">Wigilia, Dzień Nauczyciela, ferie, rekolekcje – dni które nie są polskim świętem ustawowym.</p>
+        <a href="/schedule-admin/holidays" class="btn btn-ghost" style="margin-top: 0.5rem;">Zarządzaj dniami wolnymi →</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,53 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title} + ' - Dzienniczek'"></title>
+    <title th:text="${title} + ' – Dzienniczek'">Plan Lekcji</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .week-nav {
+            display: flex; align-items: center; gap: 1rem;
+            margin-bottom: 2rem; flex-wrap: wrap;
+        }
+        .week-nav span {
+            font-weight: 600; font-size: 1rem;
+        }
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+        .day-column { min-width: 0; }
+        .day-header {
+            font-weight: 700; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--color-primary, #4f46e5);
+            padding: 0.6rem 0;
+            border-bottom: 2px solid var(--color-primary, #4f46e5);
+            margin-bottom: 0.1rem;
+            text-align: center;
+        }
+        .day-date {
+            font-size: 0.72rem; color: #9ca3af;
+            text-align: center; margin-bottom: 0.6rem;
+        }
+        .day-column.today .day-header {
+            background: #ede9fe;
+            border-radius: 6px 6px 0 0;
+            border-color: #7c3aed;
+            color: #7c3aed;
+        }
+        .day-column.today .day-date {
+            color: #7c3aed; font-weight: 600;
+        }
+        .badge-today {
+            display: inline-block;
+            background: #7c3aed; color: white;
+            font-size: 0.6rem; padding: 0.05rem 0.35rem;
+            border-radius: 4px; margin-left: 4px;
+            vertical-align: middle;
+        }
+        .lesson-card {
+            background: var(--card-bg, #fff);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px; padding: 0.65rem;
+            margin-bottom: 0.4rem;
+        }
+        .lesson-time {
+            display: block; font-size: 0.68rem;
+            color: #9ca3af; font-weight: 600; margin-bottom: 0.2rem;
+        }
+        .lesson-subject {
+            display: block; font-weight: 700; font-size: 0.88rem;
+            margin-bottom: 0.3rem;
+        }
+        .lesson-room {
+            display: inline-block;
+            background: #fef3c7; color: #92400e;
+            font-size: 0.68rem; font-weight: 600;
+            padding: 0.08rem 0.4rem; border-radius: 4px;
+        }
+        .lesson-extra {
+            display: block; font-size: 0.72rem;
+            color: #6b7280; margin-top: 0.25rem;
+        }
+        .holiday-box {
+            background: #fef9c3;
+            border: 1px solid #fde047;
+            border-radius: 8px; padding: 1rem 0.5rem;
+            text-align: center; margin-top: 0.5rem;
+        }
+        .holiday-box .icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+        .holiday-box strong { font-size: 0.8rem; color: #713f12; }
+        .holiday-box small { display: block; color: #a16207; font-size: 0.72rem; }
+        .no-lessons {
+            text-align: center; color: #9ca3af;
+            font-size: 0.78rem; padding: 1.5rem 0;
+        }
+        @media (max-width: 860px) {
+            .schedule-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="padding: 3rem 0;">
-        <a href="javascript:history.back()" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót</a>
+<div class="container" style="padding: 3rem 0;">
+    <a th:href="${backUrl}" class="btn btn-ghost" style="margin-bottom: 1.5rem;">← Powrót</a>
 
-        <div class="header" style="margin-bottom: 3rem;">
-            <h1 th:text="${title}">Plan Lekcji</h1>
-            <p class="text-muted">Szczegółowy harmonogram zajęć dydaktycznych dla wybranego oddziału lub nauczyciela.</p>
-        </div>
+    <div class="header" style="margin-bottom: 1.5rem;">
+        <h1 th:text="${title}">Plan Lekcji</h1>
+    </div>
 
-        <div class="schedule-grid">
-            <!-- Iterate through working days -->
-            <div th:each="day : ${T(java.time.DayOfWeek).values()}" 
-                 th:if="${day.value <= 5}"
-                 class="day-column">
-                
-                <div class="day-header" th:text="${#messages.msgOrNull('day.' + day) ?: day}">PONIEDZIAŁEK</div>
+    <!-- Nawigacja tygodniowa -->
+    <div class="week-nav">
+        <a th:href="@{''(week=${weekOffset - 1})}" class="btn btn-ghost">← Poprzedni</a>
+        <span th:text="${#temporals.format(mondayDate,'d MMM')} + ' – ' + ${#temporals.format(fridayDate,'d MMM yyyy')}">tydzień</span>
+        <a th:href="@{''(week=${weekOffset + 1})}" class="btn btn-ghost">Następny →</a>
+        <a th:if="${weekOffset != 0}" th:href="@{''(week=0)}" class="btn btn-ghost" style="font-size:0.8rem;">
+            Bieżący tydzień
+        </a>
+    </div>
 
-                <div th:each="s : ${schedules}" th:if="${s.dayOfWeek == day}">
-                    <div class="lesson-card">
-                        <span class="lesson-time" th:text="${s.startTime + ' - ' + s.endTime}">08:00 - 08:45</span>
-                        <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}">Matematyka</span>
-                        <div class="lesson-info">
-                            <span class="badge badge-warning" style="padding: 0.15rem 0.5rem; font-size: 0.7rem;" 
-                                  th:text="${s.room != null ? 'Sala ' + s.room.name : 'Brak sali'}">Sala 12</span>
-                            <div style="margin-top: 0.5rem; font-style: italic;" 
-                                 th:if="${entityType == 'class'}" 
-                                 th:text="${s.subject != null && s.subject.teacher != null ? 'mgr ' + s.subject.teacher.lastName : 'Brak'}">
-                                mgr Kowalski
-                            </div>
-                            <div style="margin-top: 0.5rem; font-weight: 600;" 
-                                 th:if="${entityType == 'teacher'}" 
-                                 th:text="${s.schoolClass != null ? 'Klasa ' + s.schoolClass.name : 'Brak'}">
-                                Klasa 1A
-                            </div>
-                        </div>
-                    </div>
+    <div class="schedule-grid">
+
+        <!-- PONIEDZIAŁEK -->
+        <div th:class="${weekDates[0].equals(today)} ? 'day-column today' : 'day-column'">
+            <div class="day-header">
+                Poniedziałek
+                <span th:if="${weekDates[0].equals(today)}" class="badge-today">DZIŚ</span>
+            </div>
+            <div class="day-date" th:text="${#temporals.format(weekDates[0],'d MMM')}"></div>
+            <div th:if="${holidays.containsKey(weekDates[0])}" class="holiday-box">
+                <span class="icon">🎉</span>
+                <strong th:text="${holidays.get(weekDates[0])}">Święto</strong>
+                <small>Brak zajęć</small>
+            </div>
+            <div th:unless="${holidays.containsKey(weekDates[0])}">
+                <div th:each="s : ${scheduleByDay['MONDAY']}" class="lesson-card">
+                    <span class="lesson-time" th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></span>
+                    <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
+                    <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
+                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
+                          th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>
-
-                <!-- Placeholder for empty days -->
-                <div th:if="${#lists.isEmpty(schedules.?[dayOfWeek == __${day}__])}" 
-                     class="text-muted" style="text-align: center; padding: 2rem 0; font-size: 0.8rem;">
-                    Brak zajęć
-                </div>
+                <div th:if="${scheduleByDay['MONDAY'] == null or #lists.isEmpty(scheduleByDay['MONDAY'])}"
+                     class="no-lessons">Brak zajęć</div>
             </div>
         </div>
+
+        <!-- WTOREK -->
+        <div th:class="${weekDates[1].equals(today)} ? 'day-column today' : 'day-column'">
+            <div class="day-header">
+                Wtorek
+                <span th:if="${weekDates[1].equals(today)}" class="badge-today">DZIŚ</span>
+            </div>
+            <div class="day-date" th:text="${#temporals.format(weekDates[1],'d MMM')}"></div>
+            <div th:if="${holidays.containsKey(weekDates[1])}" class="holiday-box">
+                <span class="icon">🎉</span>
+                <strong th:text="${holidays.get(weekDates[1])}">Święto</strong>
+                <small>Brak zajęć</small>
+            </div>
+            <div th:unless="${holidays.containsKey(weekDates[1])}">
+                <div th:each="s : ${scheduleByDay['TUESDAY']}" class="lesson-card">
+                    <span class="lesson-time" th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></span>
+                    <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
+                    <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
+                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
+                          th:text="'Klasa ' + ${s.schoolClass.name}"></span>
+                </div>
+                <div th:if="${scheduleByDay['TUESDAY'] == null or #lists.isEmpty(scheduleByDay['TUESDAY'])}"
+                     class="no-lessons">Brak zajęć</div>
+            </div>
+        </div>
+
+        <!-- ŚRODA -->
+        <div th:class="${weekDates[2].equals(today)} ? 'day-column today' : 'day-column'">
+            <div class="day-header">
+                Środa
+                <span th:if="${weekDates[2].equals(today)}" class="badge-today">DZIŚ</span>
+            </div>
+            <div class="day-date" th:text="${#temporals.format(weekDates[2],'d MMM')}"></div>
+            <div th:if="${holidays.containsKey(weekDates[2])}" class="holiday-box">
+                <span class="icon">🎉</span>
+                <strong th:text="${holidays.get(weekDates[2])}">Święto</strong>
+                <small>Brak zajęć</small>
+            </div>
+            <div th:unless="${holidays.containsKey(weekDates[2])}">
+                <div th:each="s : ${scheduleByDay['WEDNESDAY']}" class="lesson-card">
+                    <span class="lesson-time" th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></span>
+                    <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
+                    <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
+                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
+                          th:text="'Klasa ' + ${s.schoolClass.name}"></span>
+                </div>
+                <div th:if="${scheduleByDay['WEDNESDAY'] == null or #lists.isEmpty(scheduleByDay['WEDNESDAY'])}"
+                     class="no-lessons">Brak zajęć</div>
+            </div>
+        </div>
+
+        <!-- CZWARTEK -->
+        <div th:class="${weekDates[3].equals(today)} ? 'day-column today' : 'day-column'">
+            <div class="day-header">
+                Czwartek
+                <span th:if="${weekDates[3].equals(today)}" class="badge-today">DZIŚ</span>
+            </div>
+            <div class="day-date" th:text="${#temporals.format(weekDates[3],'d MMM')}"></div>
+            <div th:if="${holidays.containsKey(weekDates[3])}" class="holiday-box">
+                <span class="icon">🎉</span>
+                <strong th:text="${holidays.get(weekDates[3])}">Święto</strong>
+                <small>Brak zajęć</small>
+            </div>
+            <div th:unless="${holidays.containsKey(weekDates[3])}">
+                <div th:each="s : ${scheduleByDay['THURSDAY']}" class="lesson-card">
+                    <span class="lesson-time" th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></span>
+                    <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
+                    <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
+                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
+                          th:text="'Klasa ' + ${s.schoolClass.name}"></span>
+                </div>
+                <div th:if="${scheduleByDay['THURSDAY'] == null or #lists.isEmpty(scheduleByDay['THURSDAY'])}"
+                     class="no-lessons">Brak zajęć</div>
+            </div>
+        </div>
+
+        <!-- PIĄTEK -->
+        <div th:class="${weekDates[4].equals(today)} ? 'day-column today' : 'day-column'">
+            <div class="day-header">
+                Piątek
+                <span th:if="${weekDates[4].equals(today)}" class="badge-today">DZIŚ</span>
+            </div>
+            <div class="day-date" th:text="${#temporals.format(weekDates[4],'d MMM')}"></div>
+            <div th:if="${holidays.containsKey(weekDates[4])}" class="holiday-box">
+                <span class="icon">🎉</span>
+                <strong th:text="${holidays.get(weekDates[4])}">Święto</strong>
+                <small>Brak zajęć</small>
+            </div>
+            <div th:unless="${holidays.containsKey(weekDates[4])}">
+                <div th:each="s : ${scheduleByDay['FRIDAY']}" class="lesson-card">
+                    <span class="lesson-time" th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></span>
+                    <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
+                    <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
+                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                    <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
+                          th:text="'Klasa ' + ${s.schoolClass.name}"></span>
+                </div>
+                <div th:if="${scheduleByDay['FRIDAY'] == null or #lists.isEmpty(scheduleByDay['FRIDAY'])}"
+                     class="no-lessons">Brak zajęć</div>
+            </div>
+        </div>
+
     </div>
+</div>
 </body>
+</html>

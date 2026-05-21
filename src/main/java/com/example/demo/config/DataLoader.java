@@ -7,7 +7,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -25,6 +27,7 @@ public class DataLoader implements CommandLineRunner {
     private final AttendanceRepository attendanceRepository;
     private final AppUserRepository appUserRepository;
     private final ExamRepository examRepository;
+    private final ScheduleRepository scheduleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -126,7 +129,7 @@ public class DataLoader implements CommandLineRunner {
         List<Room> rooms = new ArrayList<>();
         for (int i = 1; i <= 25; i++) {
             Room room = new Room();
-            room.setName("Sala " + (100 + i));
+            room.setName("" + (100 + i));
             rooms.add(room);
         }
         roomRepository.saveAll(rooms);
@@ -227,6 +230,86 @@ public class DataLoader implements CommandLineRunner {
             }
         }
 
+        // -------------------------------------------------------
+        // Generowanie planu lekcji dla każdej klasy
+        // -------------------------------------------------------
+        if (scheduleRepository.count() == 0) {
+
+            LocalTime[] startTimes = {
+                LocalTime.of(8,  0),
+                LocalTime.of(8, 55),
+                LocalTime.of(9, 50),
+                LocalTime.of(10, 45),
+                LocalTime.of(11, 55),
+                LocalTime.of(12, 50),
+                LocalTime.of(13, 45),
+                LocalTime.of(14, 40)
+            };
+            LocalTime[] endTimes = {
+                LocalTime.of(8, 45),
+                LocalTime.of(9, 40),
+                LocalTime.of(10, 35),
+                LocalTime.of(11, 30),
+                LocalTime.of(12, 40),
+                LocalTime.of(13, 35),
+                LocalTime.of(14, 30),
+                LocalTime.of(15, 25)
+            };
+
+            DayOfWeek[] schoolDays = {
+                DayOfWeek.MONDAY,
+                DayOfWeek.TUESDAY,
+                DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY,
+                DayOfWeek.FRIDAY
+            };
+
+            String[] coreSubjectNames = {
+                "Matematyka", "J. polski", "Biologia", "Chemia",
+                "Historia", "J. angielski", "Fizyka", "Geografia",
+                "Informatyka", "Wychowanie fizyczne"
+            };
+
+            List<Schedule> schedulesToSave = new ArrayList<>();
+
+            for (SchoolClass sc : schoolClasses) {
+                List<Subject> classSubjects = new ArrayList<>();
+                for (String subjectName : coreSubjectNames) {
+                    subjects.stream()
+                        .filter(s -> s.getName().equalsIgnoreCase(subjectName))
+                        .findFirst()
+                        .ifPresent(classSubjects::add);
+                    if (classSubjects.size() >= 6) break;
+                }
+                for (Subject s : subjects) {
+                    if (classSubjects.size() >= 6) break;
+                    if (!classSubjects.contains(s)) classSubjects.add(s);
+                }
+
+                int subjectIdx = 0;
+                for (DayOfWeek day : schoolDays) {
+                    for (int lesson = 0; lesson < 6; lesson++) {
+                        Subject subject = classSubjects.get(subjectIdx % classSubjects.size());
+                        Room room = rooms.get(r.nextInt(rooms.size()));
+
+                        Schedule schedule = new Schedule();
+                        schedule.setSchoolClass(sc);
+                        schedule.setSubject(subject);
+                        schedule.setRoom(room);
+                        schedule.setDayOfWeek(day);
+                        schedule.setStartTime(startTimes[lesson]);
+                        schedule.setEndTime(endTimes[lesson]);
+
+                        schedulesToSave.add(schedule);
+                        subjectIdx++;
+                    }
+                }
+            }
+
+            scheduleRepository.saveAll(schedulesToSave);
+            System.out.println("Plan zajec: wygenerowano " + schedulesToSave.size() + " wpisow.");
+        }
+
         System.out.println("\n============ DATA LOADER V3 (OGROMNY) ============");
         System.out.println("Nauczyciele docelowi:    " + teacherRepository.count() + " / 30");
         System.out.println("Klasy uczniowskie:       " + schoolClassRepository.count());
@@ -235,6 +318,7 @@ public class DataLoader implements CommandLineRunner {
         System.out.println("Wszystkie Zarejestrowane Sale lekcyjne: " + roomRepository.count());
         System.out.println("Zlogowana baza historii wpisow Obc/Spl.: " + attendanceRepository.count());
         System.out.println("Wszystkie Oceny systemu: " + gradeRepository.count());
+        System.out.println("Plan zajec (schedules):  " + scheduleRepository.count());
         System.out.println("==================================================\n");
     }
 

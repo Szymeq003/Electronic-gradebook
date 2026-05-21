@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dni wolne – Dzienniczek</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+        .form-row > div { display: flex; flex-direction: column; gap: 0.3rem; }
+        .hint { font-size: 0.72rem; color: #9ca3af; margin-top: 0.2rem; }
+        .holiday-table { width: 100%; border-collapse: collapse; }
+        .holiday-table th { text-align: left; padding: 0.5rem 0.8rem; border-bottom: 2px solid #e5e7eb; font-size: 0.82rem; color: #6b7280; }
+        .holiday-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #f3f4f6; font-size: 0.88rem; }
+        .btn-sm { padding: 0.2rem 0.55rem; font-size: 0.72rem; }
+    </style>
+</head>
+<body>
+<div class="container" style="padding: 3rem 0;">
+    <a href="/schedule-admin" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do planu zajęć</a>
+
+    <div class="header" style="margin-bottom: 2rem;">
+        <h1>Szkolne dni wolne</h1>
+        <p class="text-muted">
+            Polskie święta ustawowe (Wielkanoc, 3 maja, 1 listopada itp.) są wykrywane <strong>automatycznie</strong>.<br>
+            Tu dodajesz dni specyficzne dla szkoły: Wigilia, Dzień Nauczyciela, ferie, rekolekcje.
+            Możesz podać jeden dzień albo cały zakres (np. ferie dwumiesięczne).
+        </p>
+    </div>
+
+    <!-- Komunikat o błędzie -->
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}" 
+         style="margin-bottom: 1.5rem; padding: 1rem; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; color: #b91c1c; font-size: 0.88rem; font-weight: 500;">
+    </div>
+
+    <!-- Formularz dodawania -->
+    <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.2rem;">Dodaj dzień lub okres wolny</h3>
+        <form th:action="@{/schedule-admin/holidays/add}" method="post">
+            <div class="form-row" style="margin-bottom: 0.4rem;">
+                <div style="flex: 2; min-width: 240px;">
+                    <label>Nazwa</label>
+                    <input type="text" name="name" class="input-control"
+                           placeholder="np. Wigilia, Ferie zimowe, Rekolekcje" required/>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label>Od daty</label>
+                    <input type="date" name="dateFrom" class="input-control" required/>
+                </div>
+                <div style="flex: 1; min-width: 160px;">
+                    <label>Do daty <span style="color:#9ca3af; font-weight:400;">(opcjonalne)</span></label>
+                    <input type="date" name="dateTo" class="input-control"/>
+                </div>
+                <div style="display: flex; align-items: flex-end; height: 38px; margin-top: auto;">
+                    <button type="submit" class="btn btn-primary" style="height: 38px; display: flex; align-items: center; justify-content: center;">+ Dodaj</button>
+                </div>
+            </div>
+            <p class="hint" style="margin-top: 0.6rem; color: #6b7280;">
+                Wypełnij samo pole „Od daty" dla pojedynczego dnia. Wypełnij oba pola dla zakresu (np. całe ferie).
+            </p>
+        </form>
+    </div>
+
+    <!-- Lista dodanych dni wolnych -->
+    <div class="card" style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.2rem;">Dodane dni wolne</h3>
+        <table class="holiday-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Nazwa</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="h : ${holidays}">
+                    <td th:text="${#temporals.format(h.date, 'd MMM yyyy')}"></td>
+                    <td th:text="${h.name}"></td>
+                    <td style="text-align: right;">
+                        <form th:action="@{/schedule-admin/holidays/delete/{id}(id=${h.id})}" method="post"
+                              style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Usunąć ten dzień wolny?')">Usuń</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(holidays)}">
+                    <td colspan="3" style="text-align: center; color: #9ca3af; padding: 2rem;">
+                        Brak dodatkowych dni wolnych – polskie święta są wykrywane automatycznie
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Plan klasy ' + ${schoolClass.name} + ' – edycja'">Edycja planu</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .schedule-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        .schedule-table th, .schedule-table td {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #e5e7eb;
+            font-size: 0.85rem;
+        }
+        .schedule-table th { background: #f9fafb; font-weight: 700; text-align: left; }
+        .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div class="container" style="padding: 3rem 0;">
+    <a href="/schedule-admin" class="btn btn-ghost" style="margin-bottom: 2rem;">← Wszystkie klasy</a>
+    <div class="header" style="margin-bottom: 2rem;">
+        <h1 th:text="'Plan lekcji – klasa ' + ${schoolClass.name}">Plan lekcji</h1>
+    </div>
+
+    <!-- Tabela istniejących lekcji -->
+    <table class="schedule-table">
+        <thead>
+            <tr>
+                <th>Dzień</th>
+                <th>Godziny</th>
+                <th>Przedmiot</th>
+                <th>Sala</th>
+                <th>Nauczyciel</th>
+                <th>Usuń</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="s : ${schedules}">
+                <td th:switch="${s.dayOfWeek.name()}">
+                    <span th:case="'MONDAY'">Poniedziałek</span>
+                    <span th:case="'TUESDAY'">Wtorek</span>
+                    <span th:case="'WEDNESDAY'">Środa</span>
+                    <span th:case="'THURSDAY'">Czwartek</span>
+                    <span th:case="'FRIDAY'">Piątek</span>
+                    <span th:case="*" th:text="${s.dayOfWeek.name()}"></span>
+                </td>
+                <td th:text="${#temporals.format(s.startTime,'HH:mm')} + ' – ' + ${#temporals.format(s.endTime,'HH:mm')}"></td>
+                <td th:text="${s.subject != null ? s.subject.name : '–'}"></td>
+                <td th:text="${s.room != null ? s.room.name : '–'}"></td>
+                <td th:text="${s.subject != null and s.subject.teacher != null ? 'mgr ' + s.subject.teacher.lastName : '–'}"></td>
+                <td>
+                    <form th:action="@{/schedule-admin/delete/{id}(id=${s.id})}" method="post">
+                        <input type="hidden" name="classId" th:value="${schoolClass.id}"/>
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Usunąć tę lekcję?')">Usuń</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(schedules)}">
+                <td colspan="6" style="text-align: center; color: #9ca3af; padding: 1.5rem;">
+                    Brak lekcji w planie tej klasy
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Formularz dodawania lekcji -->
+    <div class="card" style="margin-top: 2.5rem; padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Dodaj lekcję</h3>
+        <form th:action="@{/schedule-admin/class/{id}/add(id=${schoolClass.id})}" method="post"
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 1rem; align-items: end;">
+            <div>
+                <label>Dzień</label>
+                <select name="dayOfWeek" class="input-control" required>
+                    <option value="MONDAY">Poniedziałek</option>
+                    <option value="TUESDAY">Wtorek</option>
+                    <option value="WEDNESDAY">Środa</option>
+                    <option value="THURSDAY">Czwartek</option>
+                    <option value="FRIDAY">Piątek</option>
+                </select>
+            </div>
+            <div>
+                <label>Od</label>
+                <input type="time" name="startTime" class="input-control" value="08:00" required/>
+            </div>
+            <div>
+                <label>Do</label>
+                <input type="time" name="endTime" class="input-control" value="08:45" required/>
+            </div>
+            <div>
+                <label>Przedmiot</label>
+                <select name="subjectId" class="input-control" required>
+                    <option value="" disabled selected>Wybierz</option>
+                    <option th:each="sub : ${subjects}"
+                            th:value="${sub.id}"
+                            th:text="${sub.name} + (${sub.teacher != null} ? ' – ' + ${sub.teacher.lastName} : '')"></option>
+                </select>
+            </div>
+            <div>
+                <label>Sala</label>
+                <select name="roomId" class="input-control" required>
+                    <option value="" disabled selected>Wybierz</option>
+                    <option th:each="room : ${rooms}"
+                            th:value="${room.id}"
+                            th:text="${room.name}"></option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">+ Dodaj</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

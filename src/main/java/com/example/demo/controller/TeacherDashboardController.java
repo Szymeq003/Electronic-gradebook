@@ -86,12 +86,9 @@ public class TeacherDashboardController {
     }
 
     @GetMapping("/schedules")
-    public String mySchedules(Model model) {
+    public String mySchedules() {
         Teacher teacher = securityService.getCurrentTeacher()
                 .orElseThrow(() -> new IllegalStateException("Teacher profile missing"));
-        
-        model.addAttribute("teacher", teacher);
-        model.addAttribute("schedules", scheduleService.getScheduleForTeacher(teacher.getId()));
-        return "teacher_schedule";
+        return "redirect:/schedules/teacher/" + teacher.getId();
     }
 }

@@ -80,8 +80,9 @@ public class GradeController {
                 avg = sum / gradesForSubject.size();
             }
 
-            String initials = sub.getTeacher().getFirstName().charAt(0) + "." + sub.getTeacher().getLastName().charAt(0)
-                    + ".";
+            String initials = (sub.getTeacher() != null)
+                    ? sub.getTeacher().getFirstName().charAt(0) + "." + sub.getTeacher().getLastName().charAt(0) + "."
+                    : "–";
             summaries.add(new SubjectSummary(sub, initials, gradesForSubject, avg));
         }
 
@@ -174,7 +175,7 @@ public class GradeController {
                 + existingGrade.getSubject().getId();
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteGrade(@PathVariable Long id) {
         blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)

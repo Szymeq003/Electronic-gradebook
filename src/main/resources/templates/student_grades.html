@@ -103,8 +103,10 @@
                             <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
                                 <div style="display: flex; gap: 0.5rem;">
                                     <a th:href="@{/grades/edit/{id}(id=${g.id})}" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Edytuj</a>
-                                    <a th:href="@{/grades/delete/{id}(id=${g.id})}" class="btn btn-danger" style="padding: 0.5rem 1rem;" 
-                                       onclick="return confirm('Czy na pewno chcesz usunąć tę ocenę?');">Usuń</a>
+                                    <form th:action="@{/grades/delete/{id}(id=${g.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem;" 
+                                                onclick="return confirm('Czy na pewno chcesz usunąć tę ocenę?');">Usuń</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

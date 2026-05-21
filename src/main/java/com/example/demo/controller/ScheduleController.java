@@ -1,13 +1,14 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Schedule;
 import com.example.demo.model.SchoolClass;
-
 import com.example.demo.model.Student;
 import com.example.demo.model.Teacher;
 import com.example.demo.repository.AppUserRepository;
 import com.example.demo.repository.SchoolClassRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeacherRepository;
+import com.example.demo.service.HolidayService;
 import com.example.demo.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/schedules")
@@ -23,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
+    private final HolidayService holidayService;
     private final SchoolClassRepository schoolClassRepository;
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
@@ -32,78 +41,122 @@ public class ScheduleController {
     public String index(Authentication authentication, Model model) {
         if (authentication != null) {
             String username = authentication.getName();
-            
             if (hasRole(authentication, "ROLE_TEACHER")) {
                 return appUserRepository.findByUsername(username)
-                        .map(u -> u.getTeacher() != null ? "redirect:/schedules/teacher/" + u.getTeacher().getId() : "redirect:/teacher/dashboard")
+                        .map(u -> u.getTeacher() != null
+                                ? "redirect:/schedules/teacher/" + u.getTeacher().getId()
+                                : "redirect:/teacher/dashboard")
                         .orElse("redirect:/teacher/dashboard");
             }
-            
             if (hasRole(authentication, "ROLE_STUDENT")) {
                 return appUserRepository.findByUsername(username)
-                        .map(u -> (u.getStudent() != null && u.getStudent().getSchoolClass() != null) 
-                            ? "redirect:/schedules/class/" + u.getStudent().getSchoolClass().getId() 
-                            : "redirect:/student/dashboard")
+                        .map(u -> (u.getStudent() != null && u.getStudent().getSchoolClass() != null)
+                                ? "redirect:/schedules/class/" + u.getStudent().getSchoolClass().getId()
+                                : "redirect:/student/dashboard")
                         .orElse("redirect:/student/dashboard");
             }
         }
-
         model.addAttribute("classes", schoolClassRepository.findAll());
         model.addAttribute("teachers", teacherRepository.findAll());
         return "schedule_index";
     }
 
     @GetMapping("/class/{id}")
-    public String classSchedule(@PathVariable Long id, Authentication authentication, Model model) {
-        // Security check
-        if (!hasRole(authentication, "ROLE_ADMIN")) {
+    public String classSchedule(@PathVariable Long id,
+                                @RequestParam(defaultValue = "0") int week,
+                                Authentication authentication, Model model) {
+        boolean isPrivileged = hasRole(authentication, "ROLE_ADMIN")
+                || hasRole(authentication, "ROLE_DIRECTOR")
+                || hasRole(authentication, "ROLE_SECRETARY");
+
+        if (!isPrivileged) {
             if (hasRole(authentication, "ROLE_STUDENT")) {
                 Student student = appUserRepository.findByUsername(authentication.getName())
                         .map(u -> u.getStudent()).orElse(null);
-                if (student == null || student.getSchoolClass() == null || !student.getSchoolClass().getId().equals(id)) {
-                    return student != null && student.getSchoolClass() != null 
-                           ? "redirect:/schedules/class/" + student.getSchoolClass().getId() 
-                           : "redirect:/student/dashboard";
+                if (student == null || student.getSchoolClass() == null
+                        || !student.getSchoolClass().getId().equals(id)) {
+                    return student != null && student.getSchoolClass() != null
+                            ? "redirect:/schedules/class/" + student.getSchoolClass().getId()
+                            : "redirect:/student/dashboard";
                 }
             } else {
-                // Teachers cannot see class schedules based on strict requirement
-                return "redirect:/schedules"; 
+                return "redirect:/schedules";
             }
         }
 
         SchoolClass schoolClass = schoolClassRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid class Id:" + id));
-        model.addAttribute("schedules", scheduleService.getScheduleForClass(id));
-        model.addAttribute("title", "Plan Lekcji Klasy: " + schoolClass.getName());
+                .orElseThrow(() -> new IllegalArgumentException("Klasa nie znaleziona: " + id));
+        List<Schedule> schedules = scheduleService.getScheduleForClass(id);
+        Map<String, List<Schedule>> scheduleByDay = schedules.stream()
+                .collect(Collectors.groupingBy(s -> s.getDayOfWeek().name()));
+
+        model.addAttribute("scheduleByDay", scheduleByDay);
+        model.addAttribute("title", "Plan lekcji – klasa " + schoolClass.getName());
         model.addAttribute("entityType", "class");
+        model.addAttribute("backUrl", isPrivileged ? "/schedules" : "/student/dashboard");
+        addHolidayContext(model, week);
         return "schedule";
     }
 
     @GetMapping("/teacher/{id}")
-    public String teacherSchedule(@PathVariable Long id, Authentication authentication, Model model) {
-        // Security check
-        if (!hasRole(authentication, "ROLE_ADMIN")) {
+    public String teacherSchedule(@PathVariable Long id,
+                                  @RequestParam(defaultValue = "0") int week,
+                                  Authentication authentication, Model model) {
+        boolean isPrivileged = hasRole(authentication, "ROLE_ADMIN")
+                || hasRole(authentication, "ROLE_DIRECTOR")
+                || hasRole(authentication, "ROLE_SECRETARY");
+
+        if (!isPrivileged) {
             if (hasRole(authentication, "ROLE_TEACHER")) {
                 Teacher teacher = appUserRepository.findByUsername(authentication.getName())
                         .map(u -> u.getTeacher()).orElse(null);
                 if (teacher == null || !teacher.getId().equals(id)) {
-                    return teacher != null ? "redirect:/schedules/teacher/" + teacher.getId() : "redirect:/teacher/dashboard";
+                    return teacher != null
+                            ? "redirect:/schedules/teacher/" + teacher.getId()
+                            : "redirect:/teacher/dashboard";
                 }
             } else {
-                // Students cannot see teacher schedules
                 return "redirect:/schedules";
             }
         }
 
         Teacher teacher = teacherRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid teacher Id:" + id));
-        model.addAttribute("schedules", scheduleService.getScheduleForTeacher(id));
-        model.addAttribute("title", "Plan Lekcji Nauczyciela: " + teacher.getFirstName() + " " + teacher.getLastName());
+                .orElseThrow(() -> new IllegalArgumentException("Nauczyciel nie znaleziony: " + id));
+        List<Schedule> schedules = scheduleService.getScheduleForTeacher(id);
+        Map<String, List<Schedule>> scheduleByDay = schedules.stream()
+                .collect(Collectors.groupingBy(s -> s.getDayOfWeek().name()));
+
+        model.addAttribute("scheduleByDay", scheduleByDay);
+        model.addAttribute("title", "Plan lekcji – " + teacher.getFirstName() + " " + teacher.getLastName());
         model.addAttribute("entityType", "teacher");
+        model.addAttribute("backUrl", isPrivileged ? "/schedules" : "/teacher/dashboard");
+        addHolidayContext(model, week);
         return "schedule";
     }
 
+    /** Dodaje do modelu: listę dat pon–pt bieżącego tygodnia, mapę świąt i offset tygodnia. */
+    private void addHolidayContext(Model model, int weekOffset) {
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today
+                .with(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue())
+                .plusWeeks(weekOffset);
+        LocalDate friday = monday.plusDays(4);
+
+        List<LocalDate> weekDates = new ArrayList<>();
+        for (int i = 0; i < 5; i++) weekDates.add(monday.plusDays(i));
+
+        Map<LocalDate, String> holidays = holidayService.getHolidaysInRange(monday, friday);
+
+        model.addAttribute("today", today);
+        model.addAttribute("weekDates", weekDates);
+        model.addAttribute("holidays", holidays);
+        model.addAttribute("weekOffset", weekOffset);
+        model.addAttribute("mondayDate", monday);
+        model.addAttribute("fridayDate", friday);
+    }
+
     private boolean hasRole(Authentication auth, String role) {
-        return auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(role));
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(role));
     }
 }
