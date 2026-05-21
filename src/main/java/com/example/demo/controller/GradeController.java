@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Controller
 @RequestMapping("/grades")
@@ -25,6 +31,16 @@ public class GradeController {
     private final StudentService studentService;
     private final SubjectService subjectService;
     private final SecurityService securityService;
+
+    private static final Logger log = LoggerFactory.getLogger(GradeController.class);
+
+    private boolean canOverrideLock() {
+        return securityService.getCurrentAppUser()
+                .map(user -> user.getRole() == Role.ROLE_ADMIN
+                          || user.getRole() == Role.ROLE_DIRECTOR)
+                .orElse(false);
+    }
+
 
     @lombok.Data
     @lombok.AllArgsConstructor
@@ -123,11 +139,24 @@ public class GradeController {
         newGrade.setSubject(subject);
         newGrade.setDate(LocalDate.now());
 
+        Map<Long, Boolean> editableMap = grades.stream()
+                .collect(Collectors.toMap(
+                        Grade::getId,
+                        g -> canOverrideLock() || gradeService.isEditable(g)
+                ));
+        Map<Long, Long> minutesMap = grades.stream()
+                .collect(Collectors.toMap(
+                        Grade::getId,
+                        g -> gradeService.minutesUntilLocked(g)
+                ));
+
         model.addAttribute("student", student);
         model.addAttribute("subject", subject);
         model.addAttribute("grades", grades);
         model.addAttribute("average", average);
         model.addAttribute("newGrade", newGrade);
+        model.addAttribute("editableMap", editableMap);
+        model.addAttribute("minutesMap", minutesMap);
 
         return "student_grades";
     }
@@ -153,19 +182,41 @@ public class GradeController {
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showEditForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
+
+        if (!canOverrideLock() && !gradeService.isEditable(grade)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Nie można edytować oceny – minęły 3 godziny od jej wystawienia.");
+            return "redirect:/grades/student/" + grade.getStudent().getId()
+                    + "/subject/" + grade.getSubject().getId();
+        }
+
         model.addAttribute("grade", grade);
         return "edit_grade";
     }
 
     @PostMapping("/edit/{id}")
-    public String updateGrade(@PathVariable Long id, @ModelAttribute Grade updatedGrade) {
+    public String updateGrade(@PathVariable Long id, @ModelAttribute Grade updatedGrade, RedirectAttributes redirectAttributes) {
         blockStudentWriteAccess();
         Grade existingGrade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
+
+        if (!canOverrideLock() && !gradeService.isEditable(existingGrade)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Nie można edytować oceny – minęły 3 godziny od jej wystawienia.");
+            return "redirect:/grades/student/" + existingGrade.getStudent().getId()
+                    + "/subject/" + existingGrade.getSubject().getId();
+        }
+
+        if (canOverrideLock() && !gradeService.isEditable(existingGrade)) {
+            String editor = securityService.getCurrentAppUser()
+                    .map(u -> u.getUsername()).orElse("nieznany");
+            log.warn("AUDIT: użytkownik '{}' edytuje zamrożoną ocenę id={} (wystawiona: {})",
+                    editor, existingGrade.getId(), existingGrade.getCreatedAt());
+        }
 
         existingGrade.setValue(updatedGrade.getValue());
         existingGrade.setDate(updatedGrade.getDate());
@@ -176,10 +227,18 @@ public class GradeController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteGrade(@PathVariable Long id) {
+    public String deleteGrade(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
+
+        if (!canOverrideLock() && !gradeService.isEditable(grade)) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Nie można usunąć oceny – minęły 3 godziny od jej wystawienia.");
+            return "redirect:/grades/student/" + grade.getStudent().getId()
+                    + "/subject/" + grade.getSubject().getId();
+        }
+
         Long studentId = grade.getStudent().getId();
         Long subjectId = grade.getSubject().getId();
 

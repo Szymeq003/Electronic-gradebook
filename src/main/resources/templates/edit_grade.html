@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -15,6 +16,16 @@
         <a th:href="@{/classes}">Klasy</a>
     </nav>
     <hr />
+
+    <div sec:authorize="hasAnyRole('ADMIN', 'DIRECTOR')"
+         th:if="${grade.createdAt != null}"
+         style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;
+                background: #fefce8; border: 1px solid #fde047;
+                border-radius: 8px; color: #854d0e; font-size: 0.88rem; max-width: 600px;">
+        ⚠️ Edytujesz ocenę jako administrator. Ocena została wystawiona
+        <strong th:text="${#temporals.format(grade.createdAt, 'd MMM yyyy, HH:mm')}"></strong>.
+        Zmiany są logowane.
+    </div>
 
     <h1 th:text="|Edytuj Ocenę z przedmiotu: ${grade.subject.name}|">Edytuj Ocenę</h1>
 

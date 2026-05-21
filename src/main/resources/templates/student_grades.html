@@ -38,6 +38,13 @@
     </aside>
 
     <main class="main-content">
+        <div th:if="${error}"
+             style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;
+                    background: #fee2e2; border: 1px solid #fca5a5;
+                    border-radius: 8px; color: #b91c1c; font-size: 0.88rem; font-weight: 500;">
+            🔒 <span th:text="${error}"></span>
+        </div>
+
         <div class="header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: start;">
             <div>
                 <h1 th:text="|${subject.name}: ${student.firstName} ${student.lastName}|">Szczegóły Ocen</h1>
@@ -101,12 +108,22 @@
                             </td>
                             <td class="text-muted" th:text="${g.date}">2024-04-16</td>
                             <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
-                                <div style="display: flex; gap: 0.5rem;">
+                                <div th:if="${editableMap[g.id]}" style="display: flex; gap: 0.5rem; align-items: center;">
                                     <a th:href="@{/grades/edit/{id}(id=${g.id})}" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Edytuj</a>
                                     <form th:action="@{/grades/delete/{id}(id=${g.id})}" method="post" style="display:inline;">
                                         <button type="submit" class="btn btn-danger" style="padding: 0.5rem 1rem;" 
                                                 onclick="return confirm('Czy na pewno chcesz usunąć tę ocenę?');">Usuń</button>
                                     </form>
+                                    <span sec:authorize="hasAnyRole('TEACHER', 'SECRETARY')" 
+                                          th:if="${minutesMap[g.id] != null and minutesMap[g.id] > 0}" 
+                                          style="font-size: 0.72rem; color: #9ca3af; white-space: nowrap;" 
+                                          th:text="'(blokada za ' + ${minutesMap[g.id]} + ' min)'">
+                                    </span>
+                                </div>
+                                <div th:unless="${editableMap[g.id]}" 
+                                     style="display: flex; align-items: center; gap: 0.4rem; color: #9ca3af; font-size: 0.8rem;">
+                                    <span>🔒</span>
+                                    <span>Zablokowana</span>
                                 </div>
                             </td>
                         </tr>
