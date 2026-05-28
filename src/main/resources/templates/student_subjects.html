@@ -30,6 +30,8 @@
         <div class="sidebar-logo">
             <span sec:authorize="hasRole('ADMIN')">Dzienniczek Admin</span>
             <span sec:authorize="hasRole('TEACHER')">Dzienniczek Nauczyciela</span>
+            <span sec:authorize="hasRole('DIRECTOR')">Dzienniczek Dyrekcja</span>
+            <span sec:authorize="hasRole('SECRETARY')">Dzienniczek Sekretariat</span>
         </div>
         <nav>
             <ul class="nav-links">
@@ -41,6 +43,25 @@
                     <li><a href="/admin/classes">Klasy</a></li>
                     <li><a href="/admin/subjects">Przedmioty</a></li>
                     <li><a href="/admin/rooms">Sale</a></li>
+                </th:block>
+
+                <!-- Menu dla Dyrektora -->
+                <th:block sec:authorize="hasRole('DIRECTOR')">
+                    <li><a href="/director/dashboard">Dashboard</a></li>
+                    <li><a href="/messages">Wiadomości</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                </th:block>
+
+                <!-- Menu dla Sekretariatu -->
+                <th:block sec:authorize="hasRole('SECRETARY')">
+                    <li><a href="/secretary/dashboard">Dashboard</a></li>
+                    <li><a href="/messages">Wiadomości</a></li>
+                    <li><a href="/schedule-admin">Plan zajęć</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                    <li><a href="/admin/classes">Klasy</a></li>
+                    <li><a href="/admin/subjects">Przedmioty</a></li>
                 </th:block>
 
                 <!-- Menu dla Nauczyciela -->
@@ -63,7 +84,7 @@
                 <p class="text-muted">Całościowe zestawienie wyników dydaktycznych ze wszystkich przedmiotów.</p>
             </div>
             <div xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-                <a sec:authorize="hasRole('ADMIN')" href="/admin/students" class="btn btn-ghost">← Powrót do listy</a>
+                <a sec:authorize="hasAnyRole('ADMIN', 'DIRECTOR', 'SECRETARY')" href="/admin/students" class="btn btn-ghost">← Powrót do listy</a>
                 <a sec:authorize="hasRole('TEACHER')" th:href="@{/teacher/class/{id}(id=${student.schoolClass.id})}" class="btn btn-ghost">← Powrót do klasy</a>
             </div>
         </div>

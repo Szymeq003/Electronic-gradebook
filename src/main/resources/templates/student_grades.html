@@ -11,6 +11,8 @@
         <div class="sidebar-logo">
             <span sec:authorize="hasRole('ADMIN')">Dzienniczek Admin</span>
             <span sec:authorize="hasRole('TEACHER')">Dzienniczek Nauczyciela</span>
+            <span sec:authorize="hasRole('DIRECTOR')">Dzienniczek Dyrekcja</span>
+            <span sec:authorize="hasRole('SECRETARY')">Dzienniczek Sekretariat</span>
         </div>
         <nav>
             <ul class="nav-links">
@@ -22,6 +24,27 @@
                     <li><a href="/admin/classes">Klasy</a></li>
                     <li><a href="/admin/subjects">Przedmioty</a></li>
                     <li><a href="/admin/rooms">Sale</a></li>
+                </th:block>
+
+                <!-- Menu dla Dyrektora -->
+                <th:block sec:authorize="hasRole('DIRECTOR')">
+                    <li><a href="/director/dashboard">Dashboard</a></li>
+                    <li><a href="/messages">Wiadomości</a></li>
+                    <li><a href="/schedules">Plany lekcji</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                </th:block>
+
+                <!-- Menu dla Sekretariatu -->
+                <th:block sec:authorize="hasRole('SECRETARY')">
+                    <li><a href="/secretary/dashboard">Dashboard</a></li>
+                    <li><a href="/messages">Wiadomości</a></li>
+                    <li><a href="/schedule-admin">Plan zajęć</a></li>
+                    <li><a href="/schedules">Plany lekcji</a></li>
+                    <li><a href="/admin/teachers">Nauczyciele</a></li>
+                    <li><a href="/admin/students" class="active">Uczniowie</a></li>
+                    <li><a href="/admin/classes">Klasy</a></li>
+                    <li><a href="/admin/subjects">Przedmioty</a></li>
                 </th:block>
 
                 <!-- Menu dla Nauczyciela -->
@@ -43,6 +66,13 @@
                     background: #fee2e2; border: 1px solid #fca5a5;
                     border-radius: 8px; color: #b91c1c; font-size: 0.88rem; font-weight: 500;">
             🔒 <span th:text="${error}"></span>
+        </div>
+
+        <div th:if="${success}"
+             style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;
+                    background: #ecfdf5; border: 1px solid #a7f3d0;
+                    border-radius: 8px; color: #065f46; font-size: 0.88rem; font-weight: 500;">
+            ✅ <span th:text="${success}"></span>
         </div>
 
         <div class="header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: start;">
@@ -96,7 +126,7 @@
                         <tr>
                             <th style="width: 25%;">Stopień</th>
                             <th>Data</th>
-                            <th style="width: 30%;" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">Akcje</th>
+                            <th style="width: 30%;" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY', 'DIRECTOR')">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -105,9 +135,14 @@
                                 <span class="badge" 
                                       style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); font-weight: 800; font-size: 1.1rem; width: 3rem; height: 3rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 0.75rem;" 
                                       th:text="${g.value}">5</span>
+                                <span th:if="${g.correctionAllowed}" 
+                                      class="badge badge-warning" 
+                                      style="margin-left: 0.5rem; font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                      Do poprawy
+                                </span>
                             </td>
                             <td class="text-muted" th:text="${g.date}">2024-04-16</td>
-                            <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
+                            <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY', 'DIRECTOR')">
                                 <div th:if="${editableMap[g.id]}" style="display: flex; gap: 0.5rem; align-items: center;">
                                     <a th:href="@{/grades/edit/{id}(id=${g.id})}" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Edytuj</a>
                                     <form th:action="@{/grades/delete/{id}(id=${g.id})}" method="post" style="display:inline;">
@@ -121,9 +156,19 @@
                                     </span>
                                 </div>
                                 <div th:unless="${editableMap[g.id]}" 
-                                     style="display: flex; align-items: center; gap: 0.4rem; color: #9ca3af; font-size: 0.8rem;">
-                                    <span>🔒</span>
-                                    <span>Zablokowana</span>
+                                     style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <span style="color: #9ca3af; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                                        <span>🔒</span>
+                                        <span>Zablokowana</span>
+                                    </span>
+                                    <form sec:authorize="hasAnyRole('ADMIN', 'DIRECTOR', 'SECRETARY')" 
+                                          th:action="@{/grades/allow-correction/{id}(id=${g.id})}" 
+                                          method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-ghost" 
+                                                style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border: 1px solid var(--accent-warning); color: var(--accent-warning); background: #fffbeb;">
+                                            🔓 Zezwól na poprawę
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

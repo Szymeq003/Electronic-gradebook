@@ -29,4 +29,10 @@ public class SecretaryController {
         model.addAttribute("role", "SEKRETARIAT");
         return "secretary_dashboard";
     }
+
+    @GetMapping("/teacher-schedules")
+    public String teacherSchedules(Model model) {
+        model.addAttribute("teachers", teacherRepository.findAll());
+        return "secretary_teacher_schedules";
+    }
 }

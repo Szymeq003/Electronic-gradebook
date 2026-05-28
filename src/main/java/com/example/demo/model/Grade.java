@@ -60,6 +60,13 @@ public class Grade {
     @Column(name = "created_at", updatable = false)
     private java.time.LocalDateTime createdAt;
 
+    @Column(name = "correction_allowed")
+    private Boolean correctionAllowed = false;
+
+    public boolean isCorrectionAllowed() {
+        return correctionAllowed != null && correctionAllowed;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) {

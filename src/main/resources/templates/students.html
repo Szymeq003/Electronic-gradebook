@@ -6,7 +6,11 @@
 </head>
 <body>
     <div class="container" style="padding: 3rem 0;">
-        <a href="/admin" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do panelu admina</a>
+        <div xmlns:sec="http://www.thymeleaf.org/extras/spring-security" style="margin-bottom: 2rem;">
+            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn btn-ghost">← Powrót do panelu admina</a>
+            <a sec:authorize="hasRole('DIRECTOR')" href="/director/dashboard" class="btn btn-ghost">← Powrót do panelu dyrektora</a>
+            <a sec:authorize="hasRole('SECRETARY')" href="/secretary/dashboard" class="btn btn-ghost">← Powrót do panelu sekretariatu</a>
+        </div>
 
         <div class="header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: start;">
             <div>

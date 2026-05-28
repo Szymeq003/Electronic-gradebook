@@ -73,10 +73,37 @@ public class ScheduleAdminController {
                             @RequestParam Long roomId,
                             @RequestParam String dayOfWeek,
                             @RequestParam String startTime,
-                            @RequestParam String endTime) {
+                            @RequestParam String endTime,
+                            RedirectAttributes redirectAttributes) {
+        Subject subject = subjectRepository.findById(subjectId).orElseThrow();
+        Teacher teacher = subject.getTeacher();
+        
+        if (teacher != null) {
+            LocalTime newStart = LocalTime.parse(startTime);
+            LocalTime newEnd = LocalTime.parse(endTime);
+            DayOfWeek day = DayOfWeek.valueOf(dayOfWeek);
+            
+            List<Schedule> teacherSchedules = scheduleRepository.findBySubjectTeacherId(teacher.getId());
+            for (Schedule existing : teacherSchedules) {
+                if (existing.getDayOfWeek() == day) {
+                    LocalTime extStart = existing.getStartTime();
+                    LocalTime extEnd = existing.getEndTime();
+                    if (newStart.isBefore(extEnd) && newEnd.isAfter(extStart)) {
+                        redirectAttributes.addFlashAttribute("error", 
+                            String.format("Nauczyciel %s %s prowadzi już w tym samym czasie (%s – %s) zajęcia z klasą %s (przedmiot: %s)!",
+                                teacher.getFirstName(), teacher.getLastName(),
+                                extStart, extEnd,
+                                existing.getSchoolClass().getName(),
+                                existing.getSubject().getName()));
+                        return "redirect:/schedule-admin/class/" + classId;
+                    }
+                }
+            }
+        }
+
         Schedule s = new Schedule();
         s.setSchoolClass(schoolClassRepository.findById(classId).orElseThrow());
-        s.setSubject(subjectRepository.findById(subjectId).orElseThrow());
+        s.setSubject(subject);
         s.setRoom(roomRepository.findById(roomId).orElseThrow());
         s.setDayOfWeek(DayOfWeek.valueOf(dayOfWeek));
         s.setStartTime(LocalTime.parse(startTime));

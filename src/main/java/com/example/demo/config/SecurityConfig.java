@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/teacher/**").hasRole("TEACHER")
                         .requestMatchers("/student/**").hasRole("STUDENT")
                         .requestMatchers("/messages/**").authenticated()
-                        .requestMatchers("/grades/**", "/attendance/**").hasAnyRole("ADMIN", "TEACHER", "SECRETARY", "STUDENT")
+                        .requestMatchers("/grades/**", "/attendance/**").hasAnyRole("ADMIN", "TEACHER", "SECRETARY", "STUDENT", "DIRECTOR")
                         .requestMatchers("/schedules/**").authenticated()
                         .requestMatchers("/schedule-admin/**").hasAnyRole("ADMIN", "DIRECTOR", "SECRETARY")
                         .anyRequest().authenticated())

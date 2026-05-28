@@ -220,10 +220,32 @@ public class GradeController {
 
         existingGrade.setValue(updatedGrade.getValue());
         existingGrade.setDate(updatedGrade.getDate());
+        existingGrade.setCorrectionAllowed(false);
 
         gradeService.save(existingGrade);
         return "redirect:/grades/student/" + existingGrade.getStudent().getId() + "/subject/"
                 + existingGrade.getSubject().getId();
+    }
+
+    @PostMapping("/allow-correction/{id}")
+    public String allowCorrection(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        boolean isAuthorized = securityService.getCurrentAppUser()
+                .map(user -> user.getRole() == Role.ROLE_ADMIN
+                          || user.getRole() == Role.ROLE_DIRECTOR
+                          || user.getRole() == Role.ROLE_SECRETARY)
+                .orElse(false);
+        if (!isAuthorized) {
+            throw new IllegalStateException("Brak uprawnień do zmiany statusu oceny");
+        }
+
+        Grade grade = gradeService.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Niepoprawne ID oceny: " + id));
+
+        grade.setCorrectionAllowed(true);
+        gradeService.save(grade);
+
+        redirectAttributes.addFlashAttribute("success", "Zezwolono nauczycielowi na poprawę oceny.");
+        return "redirect:/grades/student/" + grade.getStudent().getId() + "/subject/" + grade.getSubject().getId();
     }
 
     @PostMapping("/delete/{id}")

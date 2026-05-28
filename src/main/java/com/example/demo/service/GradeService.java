@@ -22,7 +22,8 @@ public class GradeService {
         if (grade.getCreatedAt() == null) {
             return false;
         }
-        return grade.getCreatedAt().isAfter(LocalDateTime.now().minusHours(editWindowHours));
+        return grade.getCreatedAt().isAfter(LocalDateTime.now().minusHours(editWindowHours))
+                || grade.isCorrectionAllowed();
     }
 
     public long minutesUntilLocked(Grade grade) {
