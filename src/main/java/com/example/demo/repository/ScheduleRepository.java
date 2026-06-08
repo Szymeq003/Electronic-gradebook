@@ -12,19 +12,19 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query("SELECT s FROM Schedule s " +
-           "LEFT JOIN FETCH s.subject sub " +
-           "LEFT JOIN FETCH sub.teacher " +
+           "JOIN FETCH s.subject sub " +
+           "JOIN FETCH sub.teacher " +
            "LEFT JOIN FETCH s.room " +
-           "LEFT JOIN FETCH s.schoolClass " +
+           "JOIN FETCH s.schoolClass " +
            "WHERE s.schoolClass.id = :classId " +
            "ORDER BY s.dayOfWeek, s.startTime")
     List<Schedule> findBySchoolClassId(@Param("classId") Long classId);
 
     @Query("SELECT s FROM Schedule s " +
-           "LEFT JOIN FETCH s.subject sub " +
-           "LEFT JOIN FETCH sub.teacher " +
+           "JOIN FETCH s.subject sub " +
+           "JOIN FETCH sub.teacher " +
            "LEFT JOIN FETCH s.room " +
-           "LEFT JOIN FETCH s.schoolClass " +
+           "JOIN FETCH s.schoolClass " +
            "WHERE sub.teacher.id = :teacherId " +
            "ORDER BY s.dayOfWeek, s.startTime")
     List<Schedule> findBySubjectTeacherId(@Param("teacherId") Long teacherId);

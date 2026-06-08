@@ -59,14 +59,26 @@ public class GradeControllerTest {
                 .setViewResolvers(viewResolver)
                 .build();
 
+        Teacher teacher = new Teacher();
+        teacher.setId(1L);
+        teacher.setFirstName("Adam");
+        teacher.setLastName("Nowak");
+
+        SchoolClass schoolClass = new SchoolClass();
+        schoolClass.setId(1L);
+        schoolClass.setName("1A");
+        schoolClass.setTeacher(teacher);
+
         student = new Student();
         student.setId(1L);
         student.setFirstName("Jan");
         student.setLastName("Kowalski");
+        student.setSchoolClass(schoolClass);
 
         subject = new Subject();
         subject.setId(1L);
         subject.setName("Matematyka");
+        subject.setTeacher(teacher);
 
         grade = new Grade();
         grade.setId(1L);
@@ -79,6 +91,7 @@ public class GradeControllerTest {
         teacherUser = new AppUser();
         teacherUser.setUsername("nauczyciel1");
         teacherUser.setRole(Role.ROLE_TEACHER);
+        teacherUser.setTeacher(teacher);
 
         adminUser = new AppUser();
         adminUser.setUsername("admin");
@@ -93,6 +106,7 @@ public class GradeControllerTest {
         when(securityService.getCurrentAppUser()).thenReturn(Optional.of(teacherUser));
         when(gradeService.isEditable(grade)).thenReturn(true);
         when(gradeService.minutesUntilLocked(grade)).thenReturn(120L);
+        when(gradeService.canTeacherWriteGrade(any(), any())).thenReturn(true);
 
         mockMvc.perform(get("/grades/student/1/subject/1"))
                 .andExpect(status().isOk())
@@ -109,6 +123,7 @@ public class GradeControllerTest {
         when(gradeService.findById(1L)).thenReturn(Optional.of(grade));
         when(securityService.getCurrentAppUser()).thenReturn(Optional.of(teacherUser));
         when(gradeService.isEditable(grade)).thenReturn(true);
+        when(gradeService.canTeacherWriteGrade(any(), any())).thenReturn(true);
 
         mockMvc.perform(get("/grades/edit/1"))
                 .andExpect(status().isOk())
@@ -121,6 +136,7 @@ public class GradeControllerTest {
         when(gradeService.findById(1L)).thenReturn(Optional.of(grade));
         when(securityService.getCurrentAppUser()).thenReturn(Optional.of(teacherUser));
         when(gradeService.isEditable(grade)).thenReturn(false);
+        when(gradeService.canTeacherWriteGrade(any(), any())).thenReturn(true);
 
         mockMvc.perform(get("/grades/edit/1"))
                 .andExpect(status().is3xxRedirection())

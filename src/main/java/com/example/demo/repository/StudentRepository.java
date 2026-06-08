@@ -22,4 +22,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s FROM Student s WHERE (:classId IS NULL OR s.schoolClass.id = :classId) " +
            "AND (:search IS NULL OR :search = '' OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<Student> findByClassIdAndSearch(@Param("classId") Long classId, @Param("search") String search);
+    @EntityGraph(attributePaths = {"schoolClass"})
+    @Query("SELECT s FROM Student s WHERE s.id = :id")
+    Optional<Student> findByIdWithClass(@Param("id") Long id);
 }

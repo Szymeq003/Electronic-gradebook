@@ -34,6 +34,12 @@
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Zapisz Zmiany</button>
             </form>
+
+            <!-- Login info section -->
+            <div th:if="${appUser}" style="margin-top: 1.5rem; padding: 1rem; background: var(--surface-2, #f8fafc); border-radius: 0.5rem; border: 1px solid var(--border);">
+                <p style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.5rem;">Dane logowania</p>
+                <p style="margin: 0;">Login: <strong th:text="${appUser.username}"></strong></p>
+            </div>
         </div>
     </div>
 </body>

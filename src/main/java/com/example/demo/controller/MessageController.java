@@ -72,7 +72,7 @@ public class MessageController {
             return "new_message";
         }
 
-        messageService.sendMessage(currentUser, request.getRecipientId(), request.getSubject(), request.getContent());
+        messageService.sendMessages(currentUser, request.getRecipientIds(), request.getSubject(), request.getContent());
         return "redirect:/messages?sent=true";
     }
 

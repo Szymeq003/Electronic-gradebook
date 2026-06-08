@@ -68,6 +68,17 @@ public class MessageService {
         messageRepository.save(message);
     }
 
+    @Transactional
+    public void sendMessages(AppUser sender, List<Long> recipientIds, String subject, String content) {
+        if (recipientIds == null || recipientIds.isEmpty()) {
+            throw new IllegalArgumentException("Należy wybrać co najmniej jednego adresata");
+        }
+        for (Long recipientId : recipientIds) {
+            sendMessage(sender, recipientId, subject, content);
+        }
+    }
+
+
     public boolean canSendTo(AppUser sender, AppUser recipient) {
         if (recipient.getRole() == Role.ROLE_ADMIN) {
             return false;

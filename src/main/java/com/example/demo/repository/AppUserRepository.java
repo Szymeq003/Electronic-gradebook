@@ -17,4 +17,6 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
            "LEFT JOIN FETCH u.teacher t " +
            "LEFT JOIN FETCH s.grades")
     List<AppUser> findAllDistinct();
+    Optional<AppUser> findByTeacherId(Long teacherId);
+    Optional<AppUser> findByStudentId(Long studentId);
 }

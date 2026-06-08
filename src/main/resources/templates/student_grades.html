@@ -92,7 +92,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start;">
             <!-- Add Grade Form -->
-            <div class="card" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
+            <div class="card" th:if="${canAddGrade}">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
                     <span style="font-size: 1.5rem;">✍️</span>
                     <h3 style="margin: 0;">Nowa Ocena</h3>

@@ -38,12 +38,16 @@
                         <span class="text-muted">Nieobecności:</span>
                         <strong style="color: var(--accent-danger);" th:text="${statAbsent}"></strong>
                     </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span class="text-muted">Usprawiedliwione:</span>
+                        <strong style="color: #0369a1;" th:text="${#lists.size(attendances.?[status.name() == 'EXCUSED'])}">0</strong>
+                    </div>
                 </div>
             </div>
 
             <!-- Form & List -->
             <div style="display: flex; flex-direction: column; gap: 2rem;">
-                <div class="card" sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
+                <div class="card" th:if="${canAddAttendance}">
                     <h3 style="margin-bottom: 1.5rem;">Dodaj wpis do dziennika</h3>
                     <form th:action="@{/attendance/add}" method="post" th:object="${newAttendance}">
                         <input type="hidden" name="studentId" th:value="${student.id}" />
@@ -60,7 +64,7 @@
                                 <label>Status</label>
                                 <select th:field="*{status}" class="input-control" required>
                                     <option value="" disabled selected>Ustal status</option>
-                                    <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"></option>
+                                    <option th:each="st : ${statuses}" th:value="${st}" th:text="${st.getLabel()}"></option>
                                 </select>
                             </div>
                         </div>
@@ -81,7 +85,7 @@
                                 <th>Data</th>
                                 <th>Przedmiot</th>
                                 <th>Status</th>
-                                <th sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">Akcja</th>
+                                <th>Akcja</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,14 +93,46 @@
                                 <td th:text="${a.date}" style="font-weight: 600;"></td>
                                 <td th:text="|${a.subject.name}${a.subject.teacher != null ? ' (mgr ' + a.subject.teacher.lastName + ')' : ''}|"></td>
                                 <td>
-                                    <span th:class="|badge ${a.status.name() == 'PRESENT' ? 'badge-success' : (a.status.name() == 'ABSENT' ? 'badge-danger' : 'badge-warning')}|" 
+                                    <span th:class="|badge ${a.status.name() == 'PRESENT' ? 'badge-success' : (a.status.name() == 'ABSENT' ? 'badge-danger' : (a.status.name() == 'EXCUSED' ? 'badge-info' : 'badge-warning'))}|" 
                                           th:text="${a.status.getLabel()}"
-                                          th:style="${a.status.name() == 'ABSENT' ? 'background: #fee2e2; color: #ef4444; border: 1px solid #fecaca;' : ''}"></span>
+                                          th:style="${a.status.name() == 'ABSENT' ? 'background: #fee2e2; color: #ef4444; border: 1px solid #fecaca;' : (a.status.name() == 'EXCUSED' ? 'background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;' : '')}"></span>
+                                    <span th:if="${a.status.name() == 'ABSENT' and a.excuseRequested}" class="text-muted" style="display:block; font-size:0.75rem; margin-top:0.25rem; font-style:italic;">
+                                        Oczekuje na akceptację
+                                    </span>
                                 </td>
-                                <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')">
-                                    <form th:action="@{/attendance/delete/{id}(id=${a.id})}" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="return confirm('Usunąć ten wpis obecności?')">Usuń</button>
+                                <td>
+                                    <!-- Akcja usuwania dla nauczyciela przedmiotu lub admina -->
+                                    <form sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY')" 
+                                          th:if="${currentUserRole == 'ROLE_ADMIN' or currentUserRole == 'ROLE_SECRETARY' or isTutor or (a.subject.teacher != null and a.subject.teacher.id == currentTeacherId)}"
+                                          th:action="@{/attendance/delete/{id}(id=${a.id})}" 
+                                          method="post" 
+                                          style="display:inline;">
+                                        <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #fee2e2; color: #ef4444; border: 1px solid #fecaca;" onclick="return confirm('Usunąć ten wpis obecności?')">Usuń</button>
                                     </form>
+
+                                    <!-- Usprawiedliwienie przez ucznia -->
+                                    <div sec:authorize="hasRole('STUDENT')" style="display:inline;">
+                                        <form th:if="${a.status.name() == 'ABSENT' and !a.excuseRequested}" 
+                                              th:action="@{/attendance/excuse/request/{id}(id=${a.id})}" 
+                                              method="post" 
+                                              style="display:inline;">
+                                            <button type="submit" class="btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight:600; cursor:pointer;">Usprawiedliw</button>
+                                        </form>
+                                        <span th:if="${a.status.name() == 'ABSENT' and a.excuseRequested}" class="text-muted" style="font-size:0.75rem;">Wysłano prośbę</span>
+                                        <span th:if="${a.status.name() == 'EXCUSED'}" class="text-success" style="font-size:0.75rem; font-weight:600;">Usprawiedliwiona</span>
+                                    </div>
+
+                                    <!-- Decyzja o usprawiedliwieniu dla wychowawcy / admina -->
+                                    <div sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" 
+                                         th:if="${a.status.name() == 'ABSENT' and a.excuseRequested and (currentUserRole == 'ROLE_ADMIN' or isTutor)}" 
+                                         style="display:inline-flex; gap:0.25rem; margin-left:0.5rem;">
+                                        <form th:action="@{/attendance/excuse/approve/{id}(id=${a.id})}" method="post" style="display:inline;">
+                                            <button type="submit" class="btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-weight:600; cursor:pointer;">Zaakceptuj</button>
+                                        </form>
+                                        <form th:action="@{/attendance/excuse/reject/{id}(id=${a.id})}" method="post" style="display:inline;">
+                                            <button type="submit" class="btn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-weight:600; cursor:pointer;">Odrzuć</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

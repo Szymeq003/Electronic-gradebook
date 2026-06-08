@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.AppUser;
 import com.example.demo.model.Grade;
 import com.example.demo.model.Role;
 import com.example.demo.model.Student;
 import com.example.demo.model.Subject;
+import com.example.demo.model.Teacher;
 import com.example.demo.service.GradeService;
 import com.example.demo.service.SecurityService;
 import com.example.demo.service.StudentService;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
@@ -37,9 +40,11 @@ public class GradeController {
     private boolean canOverrideLock() {
         return securityService.getCurrentAppUser()
                 .map(user -> user.getRole() == Role.ROLE_ADMIN
-                          || user.getRole() == Role.ROLE_DIRECTOR)
+                          || user.getRole() == Role.ROLE_DIRECTOR
+                          || user.getRole() == Role.ROLE_SECRETARY)
                 .orElse(false);
     }
+
 
 
     @lombok.Data
@@ -65,8 +70,26 @@ public class GradeController {
         Student student = studentService.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid student Id:" + studentId));
 
-        List<Subject> allSubjects = subjectService.findAll();
-        List<Grade> studentGrades = gradeService.findByStudentId(studentId);
+        List<Subject> allSubjects;
+        List<Grade> studentGrades;
+        Optional<AppUser> currentUserOpt = securityService.getCurrentAppUser();
+        if (currentUserOpt.isPresent() && currentUserOpt.get().getRole() == Role.ROLE_TEACHER) {
+            Teacher teacher = currentUserOpt.get().getTeacher();
+            if (teacher != null) {
+                allSubjects = subjectService.findAll().stream()
+                        .filter(s -> s.getTeacher() != null && s.getTeacher().getId().equals(teacher.getId()))
+                        .collect(Collectors.toList());
+                studentGrades = gradeService.findByStudentId(studentId).stream()
+                        .filter(g -> g.getSubject() != null && g.getSubject().getTeacher() != null && g.getSubject().getTeacher().getId().equals(teacher.getId()))
+                        .collect(Collectors.toList());
+            } else {
+                allSubjects = List.of();
+                studentGrades = List.of();
+            }
+        } else {
+            allSubjects = subjectService.findAll();
+            studentGrades = gradeService.findByStudentId(studentId);
+        }
 
         java.util.Set<Long> takenSubjectIds = studentGrades.stream()
                 .map(g -> g.getSubject().getId())
@@ -123,6 +146,16 @@ public class GradeController {
         Subject subject = subjectService.findById(subjectId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid subject Id:" + subjectId));
 
+        // Security check for teachers
+        securityService.getCurrentAppUser().ifPresent(user -> {
+            if (user.getRole() == Role.ROLE_TEACHER) {
+                Teacher teacher = user.getTeacher();
+                if (teacher == null || subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
+                    throw new IllegalStateException("Brak uprawnień do przeglądania ocen z przedmiotu innego nauczyciela");
+                }
+            }
+        });
+
         List<Grade> grades = gradeService.findByStudentIdAndSubjectId(studentId, subjectId);
 
         double average = 0.0;
@@ -142,13 +175,36 @@ public class GradeController {
         Map<Long, Boolean> editableMap = grades.stream()
                 .collect(Collectors.toMap(
                         Grade::getId,
-                        g -> canOverrideLock() || gradeService.isEditable(g)
+                        g -> {
+                            boolean baseEditable = canOverrideLock() || gradeService.isEditable(g);
+                            Optional<AppUser> currentUser = securityService.getCurrentAppUser();
+                            if (currentUser.isPresent() && currentUser.get().getRole() == Role.ROLE_TEACHER) {
+                                return baseEditable && gradeService.canTeacherWriteGrade(currentUser.get().getTeacher(), g);
+                            }
+                            return baseEditable;
+                        }
                 ));
         Map<Long, Long> minutesMap = grades.stream()
                 .collect(Collectors.toMap(
                         Grade::getId,
                         g -> gradeService.minutesUntilLocked(g)
                 ));
+
+        boolean canAddGrade = false;
+        Optional<AppUser> currentUserOpt = securityService.getCurrentAppUser();
+        if (currentUserOpt.isPresent()) {
+            AppUser currentUser = currentUserOpt.get();
+            if (currentUser.getRole() == Role.ROLE_ADMIN 
+                    || currentUser.getRole() == Role.ROLE_DIRECTOR 
+                    || currentUser.getRole() == Role.ROLE_SECRETARY) {
+                canAddGrade = true;
+            } else if (currentUser.getRole() == Role.ROLE_TEACHER && currentUser.getTeacher() != null) {
+                Grade tempGrade = new Grade();
+                tempGrade.setStudent(student);
+                tempGrade.setSubject(subject);
+                canAddGrade = gradeService.canTeacherWriteGrade(currentUser.getTeacher(), tempGrade);
+            }
+        }
 
         model.addAttribute("student", student);
         model.addAttribute("subject", subject);
@@ -157,6 +213,7 @@ public class GradeController {
         model.addAttribute("newGrade", newGrade);
         model.addAttribute("editableMap", editableMap);
         model.addAttribute("minutesMap", minutesMap);
+        model.addAttribute("canAddGrade", canAddGrade);
 
         return "student_grades";
     }
@@ -186,6 +243,14 @@ public class GradeController {
         blockStudentWriteAccess();
         Grade grade = gradeService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid grade Id:" + id));
+
+        Optional<AppUser> currentUserOpt = securityService.getCurrentAppUser();
+        if (currentUserOpt.isPresent() && currentUserOpt.get().getRole() == Role.ROLE_TEACHER) {
+            Teacher teacher = currentUserOpt.get().getTeacher();
+            if (teacher == null || !gradeService.canTeacherWriteGrade(teacher, grade)) {
+                throw new IllegalStateException("Brak uprawnień do edycji tej oceny");
+            }
+        }
 
         if (!canOverrideLock() && !gradeService.isEditable(grade)) {
             redirectAttributes.addFlashAttribute("error",

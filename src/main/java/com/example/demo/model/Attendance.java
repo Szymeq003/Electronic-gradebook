@@ -36,4 +36,7 @@ public class Attendance {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AttendanceStatus status;
+
+    @Column(nullable = false)
+    private boolean excuseRequested = false;
 }

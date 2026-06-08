@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nowa Wiadomość - Dzienniczek</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .recipient-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid #e5e7eb;
+            user-select: none;
+        }
+        .recipient-badge .remove-recipient {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            color: #9ca3af;
+            font-weight: bold;
+            border: none;
+            background: none;
+            padding: 0;
+            font-size: 1.125rem;
+            line-height: 1;
+        }
+        .recipient-badge .remove-recipient:hover {
+            color: #ef4444;
+        }
+    </style>
 </head>
 <body>
 
@@ -46,15 +74,15 @@
                         autocomplete="off"
                     />
 
-                    <!-- ukryte pole przekazywane do formularza -->
-                    <input type="hidden" name="recipientId" id="recipientId" />
+                    <!-- kontener na wybranych odbiorców (tagi) -->
+                    <div id="selectedRecipientsList" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; margin-bottom: 0.5rem;"></div>
 
                     <!-- lista wyników -->
                     <div id="recipientDropdown" class="recipient-dropdown" style="display:none;"></div>
 
                     <!-- komunikat walidacji -->
                     <span id="recipientError" class="recipient-error" style="display:none;">
-                        Wybierz adresata z listy.
+                        Wybierz co najmniej jednego adresata z listy.
                     </span>
 
                     <!-- dane odbiorców zakodowane jako JSON w data-attribute -->
@@ -100,13 +128,15 @@
         // Recipient search autocomplete logic
         (function () {
             const searchInput   = document.getElementById('recipientSearch');
-            const hiddenInput   = document.getElementById('recipientId');
             const dropdown      = document.getElementById('recipientDropdown');
             const errorSpan     = document.getElementById('recipientError');
             const dataDiv       = document.getElementById('recipientsData');
+            const selectedList  = document.getElementById('selectedRecipientsList');
+            const form          = document.querySelector('form');
 
             // Parsuj dane z data-attribute
             const recipients = JSON.parse(dataDiv.dataset.recipients || '[]');
+            const selectedIds = new Set();
 
             function buildLabel(r) {
                 let label = r.name + ' — ' + r.role;
@@ -115,21 +145,76 @@
                 return label;
             }
 
+            function updateHiddenInputs() {
+                // Usuń stare ukryte inputy z tą samą nazwą
+                const existingInputs = form.querySelectorAll('input[name="recipientIds"]');
+                existingInputs.forEach(input => input.remove());
+
+                // Stwórz nowe ukryte inputy dla każdego wybranego odbiorcy
+                selectedIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'recipientIds';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+            }
+
+            function addRecipient(r) {
+                if (selectedIds.has(r.id)) {
+                    return; // Adresat już dodany
+                }
+                selectedIds.add(r.id);
+
+                const badge = document.createElement('div');
+                badge.className = 'recipient-badge';
+                badge.id = 'badge-' + r.id;
+
+                const textSpan = document.createElement('span');
+                textSpan.textContent = r.name + ' (' + r.role + ')';
+                badge.appendChild(textSpan);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-recipient';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.addEventListener('click', () => {
+                    removeRecipient(r.id);
+                });
+                badge.appendChild(removeBtn);
+
+                selectedList.appendChild(badge);
+                updateHiddenInputs();
+
+                searchInput.value = '';
+                dropdown.style.display = 'none';
+                errorSpan.style.display = 'none';
+            }
+
+            function removeRecipient(id) {
+                selectedIds.delete(id);
+                const badge = document.getElementById('badge-' + id);
+                if (badge) {
+                    badge.remove();
+                }
+                updateHiddenInputs();
+            }
+
             function renderDropdown(filtered) {
                 dropdown.innerHTML = '';
-                if (filtered.length === 0) {
-                    dropdown.innerHTML = '<div class="recipient-no-results">Brak wyników</div>';
+                // Filtrujemy te, które są już wybrane
+                const nonSelected = filtered.filter(r => !selectedIds.has(r.id));
+
+                if (nonSelected.length === 0) {
+                    dropdown.innerHTML = '<div class="recipient-no-results">Brak wyników lub wszyscy już dodani</div>';
                 } else {
-                    filtered.forEach(r => {
+                    nonSelected.forEach(r => {
                         const item = document.createElement('div');
                         item.className = 'recipient-item';
                         item.textContent = buildLabel(r);
                         item.dataset.id = r.id;
                         item.addEventListener('mousedown', () => {
-                            hiddenInput.value  = r.id;
-                            searchInput.value  = buildLabel(r);
-                            dropdown.style.display = 'none';
-                            errorSpan.style.display = 'none';
+                            addRecipient(r);
                         });
                         dropdown.appendChild(item);
                     });
@@ -138,7 +223,6 @@
             }
 
             searchInput.addEventListener('input', function () {
-                hiddenInput.value = '';          // czyść wybór przy wpisywaniu
                 const q = this.value.trim().toLowerCase();
                 if (q.length < 1) {
                     dropdown.style.display = 'none';
@@ -154,9 +238,17 @@
             });
 
             searchInput.addEventListener('focus', function () {
-                if (this.value.trim().length > 0) renderDropdown(
-                    recipients.filter(r => r.name.toLowerCase().includes(this.value.trim().toLowerCase()))
-                );
+                if (this.value.trim().length > 0) {
+                    const q = this.value.trim().toLowerCase();
+                    renderDropdown(
+                        recipients.filter(r =>
+                            r.name.toLowerCase().includes(q)  ||
+                            r.role.toLowerCase().includes(q)  ||
+                            r.email.toLowerCase().includes(q) ||
+                            r.klasa.toLowerCase().includes(q)
+                        )
+                    );
+                }
             });
 
             document.addEventListener('click', function (e) {
@@ -165,9 +257,9 @@
                 }
             });
 
-            // Walidacja przy submit — upewnij się, że coś wybrano
-            document.querySelector('form').addEventListener('submit', function (e) {
-                if (!hiddenInput.value) {
+            // Walidacja przy wysyłaniu formularza
+            form.addEventListener('submit', function (e) {
+                if (selectedIds.size === 0) {
                     e.preventDefault();
                     errorSpan.style.display = 'block';
                     searchInput.focus();

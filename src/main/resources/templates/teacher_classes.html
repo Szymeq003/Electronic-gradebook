@@ -53,7 +53,6 @@
             border-radius: 1rem;
             padding: 2rem;
             border: 1px solid var(--border);
-            text-decoration: none;
             color: inherit;
             transition: all 0.2s ease;
             position: relative;
@@ -62,7 +61,7 @@
         }
 
         .class-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             border-color: var(--primary);
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
@@ -80,6 +79,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .badge {
@@ -89,6 +89,44 @@
             border-radius: 2rem;
             font-weight: 600;
             border: 1px solid #d1fae5;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
         }
 
         .back-btn {
@@ -105,6 +143,17 @@
         .back-btn:hover {
             color: var(--primary);
         }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -114,19 +163,27 @@
             <div>
                 <a href="/teacher/dashboard" class="back-btn">← Powrót do dashboardu</a>
                 <h1>Moje Klasy</h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;"
+                   th:text="'Uczysz w ' + ${#lists.size(classes)} + ' klasach'"></p>
             </div>
         </div>
 
-        <div class="grid">
-            <a th:each="c : ${classes}" th:href="@{/teacher/class/{id}(id=${c.id})}" class="class-card">
+        <div class="grid" th:if="${not #lists.isEmpty(classes)}">
+            <div th:each="c : ${classes}" class="class-card">
                 <div class="class-name" th:text="'Klasa ' + ${c.name}">Klasa 1A</div>
                 <div class="class-info">
                     Uczniów: <span class="badge" th:text="${#lists.size(c.students)}">0</span>
                 </div>
-            </a>
-            <div th:if="${#lists.isEmpty(classes)}" class="text-muted">
-                Obecnie nie jesteś wychowawcą żadnej klasy.
+                <div class="card-actions">
+                    <a th:href="@{/teacher/class/{id}(id=${c.id})}" class="btn-action btn-primary">👥 Lista uczniów</a>
+                    <a th:href="@{/schedules/class/{id}(id=${c.id})}" class="btn-action btn-secondary">📅 Plan lekcji</a>
+                </div>
             </div>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(classes)}">
+            <div class="icon">🏫</div>
+            <p>Nie jesteś przypisany do żadnej klasy w planie lekcji.</p>
         </div>
     </div>
 

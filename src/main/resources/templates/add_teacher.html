@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dodaj Ucznia - Admin</title>
+    <title>Dodaj Nauczyciela - Admin</title>
     <link th:href="@{/css/style.css}" rel="stylesheet">
 </head>
 <body>
     <div class="container" style="padding: 3rem 0; max-width: 600px;">
-        <a href="/admin/students" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do listy</a>
+        <a href="/admin/teachers" class="btn btn-ghost" style="margin-bottom: 2rem;">← Powrót do listy</a>
 
         <div class="card">
-            <h1 style="margin-bottom: 0.5rem;">Dodaj Nowego Ucznia</h1>
-            <p class="text-muted mb-4">Wypełnij dane, aby utworzyć konto ucznia.</p>
+            <h1 style="margin-bottom: 0.5rem;">Dodaj Nowego Nauczyciela</h1>
+            <p class="text-muted mb-4">Wypełnij dane, aby utworzyć konto nauczyciela.</p>
 
             <!-- Error message -->
             <div th:if="${error}" style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; color: #dc2626;">
                 <strong>Błąd:</strong> <span th:text="${error}"></span>
             </div>
 
-            <form th:action="@{/admin/students/add}" method="post" th:object="${addStudentRequest}">
+            <form th:action="@{/admin/teachers/add}" method="post" th:object="${addTeacherRequest}">
 
                 <p style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem; margin-top: 0.5rem;">Dane osobowe</p>
 
@@ -35,27 +35,20 @@
                     <label>Email</label>
                     <input type="email" class="input-control" th:field="*{email}" placeholder="email@szkola.pl"/>
                 </div>
-                <div class="form-group">
-                    <label>Przypisanie do Klasy</label>
-                    <select class="input-control" th:field="*{schoolClassId}">
-                        <option value="">Wybierz klasę...</option>
-                        <option th:each="c : ${schoolClasses}" th:value="${c.id}" th:text="${c.name}"></option>
-                    </select>
-                </div>
 
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 1.5rem 0;">
                 <p style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">Dane logowania</p>
 
                 <div class="form-group">
                     <label>Nazwa użytkownika (login)</label>
-                    <input type="text" class="input-control" th:field="*{username}" placeholder="np. jan.kowalski" required autocomplete="off"/>
+                    <input type="text" class="input-control" th:field="*{username}" placeholder="np. anna.nowak" required autocomplete="off"/>
                 </div>
                 <div class="form-group">
                     <label>Hasło</label>
-                    <input type="password" class="input-control" th:field="*{password}" placeholder="Ustaw hasło dla ucznia" required minlength="6" autocomplete="new-password"/>
+                    <input type="password" class="input-control" th:field="*{password}" placeholder="Ustaw hasło dla nauczyciela" required minlength="6" autocomplete="new-password"/>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Zapisz Ucznia</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Zapisz Nauczyciela</button>
             </form>
         </div>
     </div>

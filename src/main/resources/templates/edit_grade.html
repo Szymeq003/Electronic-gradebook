@@ -1,67 +1,70 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
 <head>
     <meta charset="UTF-8">
-    <title>Edytuj Ocenę</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edytuj Ocenę - Dzienniczek</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
 </head>
-
 <body>
 
-    <nav>
-        <a th:href="@{/teachers}">Nauczyciele</a> | 
-        <a th:href="@{/students}">Uczniowie</a> | 
-        <a th:href="@{/students/add}">Dodaj Ucznia</a> | 
-        <a th:href="@{/classes}">Klasy</a>
-    </nav>
-    <hr />
+    <main class="main-content" style="margin-left: 0; padding: 3rem 2rem; max-width: 800px; margin: 0 auto;">
+        <div style="margin-bottom: 2rem;">
+            <a th:href="@{/grades/student/{studentId}/subject/{subjectId}(studentId=${grade.student.id}, subjectId=${grade.subject.id})}" class="btn btn-ghost">← Powrót do listy ocen</a>
+        </div>
 
-    <div sec:authorize="hasAnyRole('ADMIN', 'DIRECTOR')"
-         th:if="${grade.createdAt != null}"
-         style="margin-bottom: 1.5rem; padding: 1rem 1.25rem;
-                background: #fefce8; border: 1px solid #fde047;
-                border-radius: 8px; color: #854d0e; font-size: 0.88rem; max-width: 600px;">
-        ⚠️ Edytujesz ocenę jako administrator. Ocena została wystawiona
-        <strong th:text="${#temporals.format(grade.createdAt, 'd MMM yyyy, HH:mm')}"></strong>.
-        Zmiany są logowane.
-    </div>
+        <div class="header" style="margin-bottom: 2.5rem;">
+            <h1 th:text="|Edytuj Ocenę: ${grade.student.firstName} ${grade.student.lastName}|">Edytuj Ocenę</h1>
+            <p class="text-muted" th:text="|Przedmiot: ${grade.subject.name}|">Przedmiot</p>
+        </div>
 
-    <h1 th:text="|Edytuj Ocenę z przedmiotu: ${grade.subject.name}|">Edytuj Ocenę</h1>
+        <div sec:authorize="hasAnyRole('ADMIN', 'DIRECTOR')"
+             th:if="${grade.createdAt != null}"
+             class="alert alert-warning"
+             style="margin-bottom: 1.5rem; padding: 1rem; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 0.5rem; color: #b45309; font-size: 0.875rem;">
+            ⚠️ Edytujesz ocenę jako administrator. Ocena została wystawiona 
+            <strong th:text="${#temporals.format(grade.createdAt, 'd MMM yyyy, HH:mm')}"></strong>. 
+            Zmiany są logowane.
+        </div>
 
-    <form th:action="@{/grades/edit/{id}(id=${grade.id})}" method="post" th:object="${grade}">
-        
-        <label>Ocena: 
-                <select th:field="*{value}" required>
-                    <option value="1">1</option>
-                    <option value="1+">1+</option>
-                    <option value="2-">2-</option>
-                    <option value="2">2</option>
-                    <option value="2+">2+</option>
-                    <option value="3-">3-</option>
-                    <option value="3">3</option>
-                    <option value="3+">3+</option>
-                    <option value="4-">4-</option>
-                    <option value="4">4</option>
-                    <option value="4+">4+</option>
-                    <option value="5-">5-</option>
-                    <option value="5">5</option>
-                    <option value="5+">5+</option>
-                    <option value="6-">6-</option>
-                    <option value="6">6</option>
-                </select>
-        </label><br /><br />
-        
-        <label>Data wystawienia: 
-            <input type="date" th:field="*{date}" required />
-        </label><br /><br />
-        
-        <button type="submit">Zapisz Zmiany</button>
-    </form>
+        <div class="card">
+            <h3 style="margin-bottom: 1.5rem;">Szczegóły oceny</h3>
+            <form th:action="@{/grades/edit/{id}(id=${grade.id})}" method="post" th:object="${grade}">
+                <div class="form-group">
+                    <label for="value">Ocena</label>
+                    <select th:field="*{value}" id="value" class="input-control" required>
+                        <option value="1">1</option>
+                        <option value="1+">1+</option>
+                        <option value="2-">2-</option>
+                        <option value="2">2</option>
+                        <option value="2+">2+</option>
+                        <option value="3-">3-</option>
+                        <option value="3">3</option>
+                        <option value="3+">3+</option>
+                        <option value="4-">4-</option>
+                        <option value="4">4</option>
+                        <option value="4+">4+</option>
+                        <option value="5-">5-</option>
+                        <option value="5">5</option>
+                        <option value="5+">5+</option>
+                        <option value="6-">6-</option>
+                        <option value="6">6</option>
+                    </select>
+                </div>
 
-    <br />
-    <a th:href="@{/grades/student/{studentId}/subject/{subjectId}(studentId=${grade.student.id}, subjectId=${grade.subject.id})}">Powrót do listy ocen</a>
+                <div class="form-group">
+                    <label for="date">Data wystawienia</label>
+                    <input type="date" th:field="*{date}" id="date" class="input-control" required />
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <a th:href="@{/grades/student/{studentId}/subject/{subjectId}(studentId=${grade.student.id}, subjectId=${grade.subject.id})}" class="btn btn-ghost">Anuluj</a>
+                    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                </div>
+            </form>
+        </div>
+    </main>
 
 </body>
-
 </html>

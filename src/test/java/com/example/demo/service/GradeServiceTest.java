@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.model.Grade;
 import com.example.demo.repository.GradeRepository;
+import com.example.demo.repository.ScheduleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,12 @@ public class GradeServiceTest {
 
     @Mock
     private GradeRepository gradeRepository;
+
+    @Mock
+    private ScheduleRepository scheduleRepository;
+
+    @Mock
+    private SecurityService securityService;
 
     @InjectMocks
     private GradeService gradeService;

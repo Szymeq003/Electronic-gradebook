@@ -1,15 +1,14 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Teacher;
+import com.example.demo.model.*;
+import com.example.demo.repository.AppUserRepository;
 import com.example.demo.service.TeacherService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/teachers")
@@ -17,17 +16,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class TeacherController {
 
     private final TeacherService teacherService;
+    private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     public String index(Model model) {
         model.addAttribute("teachers", teacherService.findAll());
-        model.addAttribute("newTeacher", new Teacher());
         return "index";
     }
 
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("addTeacherRequest", new AddTeacherRequest());
+        return "add_teacher";
+    }
+
     @PostMapping("/add")
-    public String addTeacher(@ModelAttribute Teacher newTeacher) {
-        teacherService.save(newTeacher);
+    public String addTeacher(@ModelAttribute AddTeacherRequest req, RedirectAttributes redirectAttributes) {
+        // Validate username uniqueness
+        if (appUserRepository.findByUsername(req.getUsername()).isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Nazwa użytkownika '" + req.getUsername() + "' jest już zajęta.");
+            return "redirect:/admin/teachers/add";
+        }
+
+        // Create Teacher entity
+        Teacher teacher = new Teacher();
+        teacher.setFirstName(req.getFirstName());
+        teacher.setLastName(req.getLastName());
+        teacher.setEmail(req.getEmail());
+        Teacher savedTeacher = teacherService.save(teacher);
+
+        // Create AppUser
+        AppUser user = new AppUser();
+        user.setUsername(req.getUsername());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setRole(Role.ROLE_TEACHER);
+        user.setTeacher(savedTeacher);
+        appUserRepository.save(user);
+
         return "redirect:/admin/teachers";
     }
 

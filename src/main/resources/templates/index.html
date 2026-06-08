@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,43 +12,27 @@
 
         <div class="header" style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: start;">
             <div>
-                <h1>Konto Administratora / Nauczyciele</h1>
+                <h1>Zarządzanie Nauczycielami</h1>
                 <p class="text-muted">Rejestr kadry pedagogicznej.</p>
             </div>
-        </div>
-
-        <div class="card mb-4">
-            <h3 style="margin-bottom: 1.5rem;">Dodaj Nauczyciela</h3>
-            <form th:action="@{/admin/teachers/add}" method="post" th:object="${newTeacher}" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Imię</label>
-                    <input type="text" class="input-control" th:field="*{firstName}" placeholder="Imię" required/>
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Nazwisko</label>
-                    <input type="text" class="input-control" th:field="*{lastName}" placeholder="Nazwisko" required/>
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label>Email</label>
-                    <input type="email" class="input-control" th:field="*{email}" placeholder="email@szkola.pl" required/>
-                </div>
-                <button type="submit" class="btn btn-primary">Zapisz</button>
-            </form>
+            <a href="/admin/teachers/add" class="btn btn-primary">+ Dodaj Nauczyciela</a>
         </div>
 
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
+                        <th>Lp.</th>
                         <th>Imię i Nazwisko</th>
                         <th>Email</th>
                         <th>Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="t : ${teachers}">
+                    <tr th:each="t, iter : ${teachers}">
+                        <td th:text="${iter.count}"></td>
                         <td style="font-weight: 700;" th:text="${t.lastName} + ' ' + ${t.firstName}"></td>
-                        <td th:text="${t.email}"></td>
+                        <td th:text="${t.email}" class="text-muted"></td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">
                                 <a th:href="@{/admin/teachers/edit/{id}(id=${t.id})}" class="btn btn-ghost" style="padding: 0.4rem 0.8rem;">Edytuj</a>
@@ -60,3 +46,4 @@
         </div>
     </div>
 </body>
+</html>

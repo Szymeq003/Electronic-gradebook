@@ -37,11 +37,11 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-value" th:text="${#lists.size(classes)}">0</span>
-                <span class="stat-label">Klasy wychowawcze</span>
+                <span class="stat-label">Klasy</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value" th:text="${#lists.size(subjects)}">0</span>
-                <span class="stat-label">Prowadzone przedmioty</span>
+                <span class="stat-value" th:text="${#lists.size(exams)}">0</span>
+                <span class="stat-label">Zaplanowane sprawdziany</span>
             </div>
         </div>
 
@@ -96,6 +96,29 @@
             </div>
             
             <form th:action="@{/teacher/exam/add}" method="post">
+                <!-- Mapa classId -> przedmioty dla JS -->
+                <script th:inline="javascript">
+                    const classSubjectsMap = /*[(${classSubjectsJson})]*/ {};
+
+                    function onClassChange(classSelect) {
+                        const classId = classSelect.value;
+                        const subjectSelect = document.getElementById('examSubjectSelect');
+                        subjectSelect.innerHTML = '<option value="" disabled selected>Wybierz przedmiot</option>';
+                        if (classId && classSubjectsMap[classId]) {
+                            const seen = new Set();
+                            classSubjectsMap[classId].forEach(function(sub) {
+                                if (!seen.has(sub.name)) {
+                                    seen.add(sub.name);
+                                    const opt = document.createElement('option');
+                                    opt.value = sub.id;
+                                    opt.textContent = sub.name;
+                                    subjectSelect.appendChild(opt);
+                                }
+                            });
+                        }
+                    }
+                </script>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Tytuł</label>
@@ -106,17 +129,16 @@
                         <input type="date" name="date" class="input-control" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Przedmiot</label>
-                        <select name="subjectId" class="input-control" required>
-                            <option value="" disabled selected>Wybierz przedmiot</option>
-                            <option th:each="s : ${subjects}" th:value="${s.id}" th:text="${s.name}"></option>
+                        <label>Klasa</label>
+                        <select name="classId" class="input-control" required onchange="onClassChange(this)">
+                            <option value="" disabled selected>Wybierz klasę</option>
+                            <option th:each="c : ${classes}" th:value="${c.id}" th:text="${c.name}"></option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Klasa</label>
-                        <select name="classId" class="input-control" required>
-                            <option value="" disabled selected>Wybierz klasę</option>
-                            <option th:each="c : ${classes}" th:value="${c.id}" th:text="${c.name}"></option>
+                        <label>Przedmiot</label>
+                        <select id="examSubjectSelect" name="subjectId" class="input-control" required>
+                            <option value="" disabled selected>Najpierw wybierz klasę</option>
                         </select>
                     </div>
                 </div>

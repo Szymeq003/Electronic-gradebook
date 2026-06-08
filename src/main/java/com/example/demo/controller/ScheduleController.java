@@ -5,6 +5,7 @@ import com.example.demo.model.SchoolClass;
 import com.example.demo.model.Student;
 import com.example.demo.model.Teacher;
 import com.example.demo.repository.AppUserRepository;
+import com.example.demo.repository.ScheduleRepository;
 import com.example.demo.repository.SchoolClassRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeacherRepository;
@@ -36,6 +37,7 @@ public class ScheduleController {
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
     private final AppUserRepository appUserRepository;
+    private final ScheduleRepository scheduleRepository;
 
     @GetMapping
     public String index(Authentication authentication, Model model) {
@@ -56,8 +58,17 @@ public class ScheduleController {
                         .orElse("redirect:/student/dashboard");
             }
         }
+
+        // Wyznacz backUrl na podstawie roli
+        String backUrl = "/admin";
+        if (authentication != null) {
+            if (hasRole(authentication, "ROLE_DIRECTOR")) backUrl = "/director/dashboard";
+            else if (hasRole(authentication, "ROLE_SECRETARY")) backUrl = "/secretary/dashboard";
+        }
+
         model.addAttribute("classes", schoolClassRepository.findAll());
         model.addAttribute("teachers", teacherRepository.findAll());
+        model.addAttribute("backUrl", backUrl);
         return "schedule_index";
     }
 
@@ -79,6 +90,21 @@ public class ScheduleController {
                             ? "redirect:/schedules/class/" + student.getSchoolClass().getId()
                             : "redirect:/student/dashboard";
                 }
+            } else if (hasRole(authentication, "ROLE_TEACHER")) {
+                // Nauczyciel może zobaczyć plan klasy, jeśli uczy w niej jakiegoś przedmiotu
+                Teacher teacher = appUserRepository.findByUsername(authentication.getName())
+                        .map(u -> u.getTeacher()).orElse(null);
+                if (teacher == null) {
+                    return "redirect:/teacher/dashboard";
+                }
+                // findBySchoolClassId używa JOIN FETCH — brak lazy loading exception
+                boolean teachesInClass = scheduleRepository.findBySchoolClassId(id).stream()
+                        .anyMatch(s -> s.getSubject() != null
+                                && s.getSubject().getTeacher() != null
+                                && s.getSubject().getTeacher().getId().equals(teacher.getId()));
+                if (!teachesInClass) {
+                    return "redirect:/teacher/dashboard";
+                }
             } else {
                 return "redirect:/schedules";
             }
@@ -93,7 +119,9 @@ public class ScheduleController {
         model.addAttribute("scheduleByDay", scheduleByDay);
         model.addAttribute("title", "Plan lekcji – klasa " + schoolClass.getName());
         model.addAttribute("entityType", "class");
-        model.addAttribute("backUrl", isPrivileged ? "/schedules" : "/student/dashboard");
+        model.addAttribute("backUrl", isPrivileged ? "/schedules"
+                : hasRole(authentication, "ROLE_TEACHER") ? "/teacher/classes"
+                : "/student/dashboard");
         addHolidayContext(model, week);
         return "schedule";
     }
