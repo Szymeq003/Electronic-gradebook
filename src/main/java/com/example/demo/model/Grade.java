@@ -60,6 +60,9 @@ public class Grade {
     @Column(name = "created_at", updatable = false)
     private java.time.LocalDateTime createdAt;
 
+    @Column(name = "comment")
+    private String comment;
+
     @Column(name = "correction_allowed")
     private Boolean correctionAllowed = false;
 

@@ -170,7 +170,7 @@
                     <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
                     <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
-                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                          th:text="'mgr ' + ${s.subject.teacher.firstName} + ' ' + ${s.subject.teacher.lastName}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
                           th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>
@@ -197,7 +197,7 @@
                     <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
                     <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
-                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                          th:text="'mgr ' + ${s.subject.teacher.firstName} + ' ' + ${s.subject.teacher.lastName}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
                           th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>
@@ -224,7 +224,7 @@
                     <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
                     <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
-                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                          th:text="'mgr ' + ${s.subject.teacher.firstName} + ' ' + ${s.subject.teacher.lastName}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
                           th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>
@@ -251,7 +251,7 @@
                     <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
                     <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
-                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                          th:text="'mgr ' + ${s.subject.teacher.firstName} + ' ' + ${s.subject.teacher.lastName}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
                           th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>
@@ -278,7 +278,7 @@
                     <span class="lesson-subject" th:text="${s.subject != null ? s.subject.name : 'Brak'}"></span>
                     <span class="lesson-room" th:if="${s.room != null}" th:text="${s.room.name}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'class' and s.subject != null and s.subject.teacher != null}"
-                          th:text="'mgr ' + ${s.subject.teacher.lastName}"></span>
+                          th:text="'mgr ' + ${s.subject.teacher.firstName} + ' ' + ${s.subject.teacher.lastName}"></span>
                     <span class="lesson-extra" th:if="${entityType == 'teacher' and s.schoolClass != null}"
                           th:text="'Klasa ' + ${s.schoolClass.name}"></span>
                 </div>

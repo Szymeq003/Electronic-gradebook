@@ -114,6 +114,11 @@
                         <label>Data wystawienia</label>
                         <input type="date" class="input-control" th:field="*{date}" required />
                     </div>
+
+                    <div class="form-group">
+                        <label>Opis / Komentarz (opcjonalnie)</label>
+                        <input type="text" class="input-control" th:field="*{comment}" placeholder="Napisz krótki komentarz..." maxlength="255" />
+                    </div>
                     
                     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Wystaw Ocenę</button>
                 </form>
@@ -141,7 +146,10 @@
                                       Do poprawy
                                 </span>
                             </td>
-                            <td class="text-muted" th:text="${g.date}">2024-04-16</td>
+                            <td class="text-muted">
+                                <span th:text="${g.date}">2024-04-16</span>
+                                <div th:if="${g.comment != null and !g.comment.isEmpty()}" style="font-size: 0.8rem; color: var(--text-main); margin-top: 0.25rem;" th:text="${g.comment}"></div>
+                            </td>
                             <td sec:authorize="hasAnyRole('TEACHER', 'ADMIN', 'SECRETARY', 'DIRECTOR')">
                                 <div th:if="${editableMap[g.id]}" style="display: flex; gap: 0.5rem; align-items: center;">
                                     <a th:href="@{/grades/edit/{id}(id=${g.id})}" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Edytuj</a>

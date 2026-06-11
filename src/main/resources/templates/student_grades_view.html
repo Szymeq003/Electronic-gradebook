@@ -60,9 +60,8 @@
                 <div class="subject-name" th:text="${entry.key.name}">Matematyka</div>
             </div>
             <div class="grades-list">
-                <div th:each="g : ${entry.value}" class="grade-item" 
-                     th:text="${g.value}" 
-                     th:title="${g.date} + (g.comment != null ? ' - ' + g.comment : '')">
+                <div th:each="g : ${entry.value}" class="grade-item" th:text="${g.value}"
+                     th:title="|${g.date}${g.subject.teacher != null ? ' - wpisał(a): ' + g.subject.teacher.firstName + ' ' + g.subject.teacher.lastName : ''}${g.comment != null and !g.comment.isEmpty() ? ' | Opis: ' + g.comment : ''}|">
                     5
                 </div>
             </div>

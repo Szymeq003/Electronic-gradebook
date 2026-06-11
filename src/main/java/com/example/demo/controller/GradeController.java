@@ -76,12 +76,21 @@ public class GradeController {
         if (currentUserOpt.isPresent() && currentUserOpt.get().getRole() == Role.ROLE_TEACHER) {
             Teacher teacher = currentUserOpt.get().getTeacher();
             if (teacher != null) {
-                allSubjects = subjectService.findAll().stream()
-                        .filter(s -> s.getTeacher() != null && s.getTeacher().getId().equals(teacher.getId()))
-                        .collect(Collectors.toList());
-                studentGrades = gradeService.findByStudentId(studentId).stream()
-                        .filter(g -> g.getSubject() != null && g.getSubject().getTeacher() != null && g.getSubject().getTeacher().getId().equals(teacher.getId()))
-                        .collect(Collectors.toList());
+                boolean isTutor = student.getSchoolClass() != null && 
+                                  student.getSchoolClass().getTeacher() != null && 
+                                  student.getSchoolClass().getTeacher().getId().equals(teacher.getId());
+
+                if (isTutor) {
+                    allSubjects = subjectService.findAll();
+                    studentGrades = gradeService.findByStudentId(studentId);
+                } else {
+                    allSubjects = subjectService.findAll().stream()
+                            .filter(s -> s.getTeacher() != null && s.getTeacher().getId().equals(teacher.getId()))
+                            .collect(Collectors.toList());
+                    studentGrades = gradeService.findByStudentId(studentId).stream()
+                            .filter(g -> g.getSubject() != null && g.getSubject().getTeacher() != null && g.getSubject().getTeacher().getId().equals(teacher.getId()))
+                            .collect(Collectors.toList());
+                }
             } else {
                 allSubjects = List.of();
                 studentGrades = List.of();
@@ -101,6 +110,13 @@ public class GradeController {
 
         java.util.List<SubjectSummary> summaries = new java.util.ArrayList<>();
 
+        boolean isAdminOrSimilar = currentUserOpt.isPresent() && 
+            (currentUserOpt.get().getRole() == Role.ROLE_ADMIN || 
+             currentUserOpt.get().getRole() == Role.ROLE_SECRETARY || 
+             currentUserOpt.get().getRole() == Role.ROLE_DIRECTOR);
+
+        Teacher currentTeacher = (currentUserOpt.isPresent() && currentUserOpt.get().getRole() == Role.ROLE_TEACHER) ? currentUserOpt.get().getTeacher() : null;
+
         for (Subject sub : allSubjects) {
             if (!takenSubjectIds.contains(sub.getId()) && takenSubjectNames.contains(sub.getName())) {
                 continue;
@@ -109,6 +125,11 @@ public class GradeController {
             java.util.List<Grade> gradesForSubject = studentGrades.stream()
                     .filter(g -> g.getSubject().getId().equals(sub.getId()))
                     .collect(java.util.stream.Collectors.toList());
+
+            boolean isSubjectTeacher = currentTeacher != null && sub.getTeacher() != null && sub.getTeacher().getId().equals(currentTeacher.getId());
+            if (gradesForSubject.isEmpty() && !isSubjectTeacher && !isAdminOrSimilar) {
+                continue;
+            }
 
             double avg = 0.0;
             if (!gradesForSubject.isEmpty()) {
@@ -150,7 +171,11 @@ public class GradeController {
         securityService.getCurrentAppUser().ifPresent(user -> {
             if (user.getRole() == Role.ROLE_TEACHER) {
                 Teacher teacher = user.getTeacher();
-                if (teacher == null || subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId())) {
+                boolean isTutor = student.getSchoolClass() != null && 
+                                  student.getSchoolClass().getTeacher() != null && 
+                                  student.getSchoolClass().getTeacher().getId().equals(teacher.getId());
+
+                if (!isTutor && (teacher == null || subject.getTeacher() == null || !subject.getTeacher().getId().equals(teacher.getId()))) {
                     throw new IllegalStateException("Brak uprawnień do przeglądania ocen z przedmiotu innego nauczyciela");
                 }
             }
