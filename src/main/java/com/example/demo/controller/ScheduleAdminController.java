@@ -35,7 +35,7 @@ public class ScheduleAdminController {
         if (authentication != null) {
             if (authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                backUrl = "/admin/dashboard";
+                backUrl = "/admin";
             } else if (authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_DIRECTOR"))) {
                 backUrl = "/director/dashboard";

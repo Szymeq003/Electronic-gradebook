@@ -21,7 +21,22 @@ public class SchoolClassController {
     private final TeacherRepository teacherRepository;
 
     @GetMapping
-    public String listClasses(Model model) {
+    public String listClasses(Model model, org.springframework.security.core.Authentication authentication) {
+        String backUrl = "/admin";
+        String backText = "← Powrót do panelu admina";
+
+        if (authentication != null) {
+            if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SECRETARY"))) {
+                backUrl = "/secretary/dashboard";
+                backText = "← Powrót do sekretariatu";
+            } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DIRECTOR"))) {
+                backUrl = "/director/dashboard";
+                backText = "← Powrót do panelu dyrektora";
+            }
+        }
+
+        model.addAttribute("backUrl", backUrl);
+        model.addAttribute("backText", backText);
         model.addAttribute("classes", schoolClassRepository.findAll());
         return "classes";
     }

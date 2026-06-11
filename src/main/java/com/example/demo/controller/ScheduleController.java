@@ -162,25 +162,66 @@ public class ScheduleController {
         return "schedule";
     }
 
-    /** Dodaje do modelu: listę dat pon–pt bieżącego tygodnia, mapę świąt i offset tygodnia. */
+    /** Dodaje do modelu: listę dat pon–pt bieżącego tygodnia, mapę świąt i offset tygodnia.
+     *  weekOffset jest przycinany tak, aby wyświetlany tydzień mieścił się
+     *  w roku szkolnym 2025/2026 (1 IX 2025 – 26 VI 2026). */
     private void addHolidayContext(Model model, int weekOffset) {
+        // ── Granice roku szkolnego 2025/2026 ──────────────────────────────
+        final LocalDate SCHOOL_YEAR_START = LocalDate.of(2025, 9, 1);
+        final LocalDate SCHOOL_YEAR_END   = LocalDate.of(2026, 6, 26);
+
         LocalDate today = LocalDate.now();
-        LocalDate monday = today
-                .with(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue())
-                .plusWeeks(weekOffset);
+
+        // Poniedziałek bieżącego tygodnia (offset = 0)
+        LocalDate baseMonday = today
+                .with(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue());
+
+        // Przesuń o zadany offset tygodniowy
+        LocalDate monday = baseMonday.plusWeeks(weekOffset);
         LocalDate friday = monday.plusDays(4);
+
+        // ── Przycinamy do granic roku szkolnego ───────────────────────────
+        // Jeśli cały tydzień jest przed początkiem roku → wróć do pierwszego tygodnia
+        LocalDate firstMonday = SCHOOL_YEAR_START
+                .with(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue());
+        if (SCHOOL_YEAR_START.getDayOfWeek() != DayOfWeek.MONDAY) {
+            // SCHOOL_YEAR_START może być środku tygodnia — bierzemy poniedziałek tego tygodnia
+        }
+
+        LocalDate lastMonday = SCHOOL_YEAR_END
+                .with(WeekFields.ISO.dayOfWeek(), DayOfWeek.MONDAY.getValue());
+
+        if (monday.isBefore(firstMonday)) {
+            monday = firstMonday;
+            friday = monday.plusDays(4);
+        } else if (monday.isAfter(lastMonday)) {
+            monday = lastMonday;
+            friday = monday.plusDays(4);
+        }
+
+        // Przelicz faktyczny offset po przycięciu (potrzebny do linków nawigacji)
+        long clampedOffset = java.time.temporal.ChronoUnit.WEEKS.between(baseMonday, monday);
+
+        // ── Czy można przejść do poprzedniego / następnego tygodnia? ──────
+        boolean prevAllowed = monday.isAfter(firstMonday);
+        boolean nextAllowed = monday.isBefore(lastMonday);
 
         List<LocalDate> weekDates = new ArrayList<>();
         for (int i = 0; i < 5; i++) weekDates.add(monday.plusDays(i));
 
         Map<LocalDate, String> holidays = holidayService.getHolidaysInRange(monday, friday);
 
-        model.addAttribute("today", today);
-        model.addAttribute("weekDates", weekDates);
-        model.addAttribute("holidays", holidays);
-        model.addAttribute("weekOffset", weekOffset);
-        model.addAttribute("mondayDate", monday);
-        model.addAttribute("fridayDate", friday);
+        model.addAttribute("today",           today);
+        model.addAttribute("weekDates",       weekDates);
+        model.addAttribute("holidays",        holidays);
+        model.addAttribute("weekOffset",      clampedOffset);
+        model.addAttribute("mondayDate",      monday);
+        model.addAttribute("fridayDate",      friday);
+        model.addAttribute("prevAllowed",     prevAllowed);
+        model.addAttribute("nextAllowed",     nextAllowed);
+        model.addAttribute("schoolYearLabel", "Rok szkolny 2025/2026");
+        model.addAttribute("schoolYearStart", SCHOOL_YEAR_START);
+        model.addAttribute("schoolYearEnd",   SCHOOL_YEAR_END);
     }
 
     private boolean hasRole(Authentication auth, String role) {

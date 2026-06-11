@@ -85,6 +85,17 @@
                         Wybierz co najmniej jednego adresata z listy.
                     </span>
 
+                    <!-- Opcje masowego wyboru dla nauczycieli/dyrekcji/sekretariatu -->
+                    <div th:if="${currentUserRole != 'ROLE_STUDENT'}" style="margin-top: 1rem; padding: 0.75rem; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                        <span style="font-size: 0.875rem; color: #4b5563; font-weight: 600; margin-right: 0.5rem;">Szybki wybór:</span>
+                        <button type="button" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; background: white; border: 1px solid #d1d5db;" id="addAllTeachersBtn">Wszyscy Nauczyciele</button>
+                        <button type="button" class="btn btn-ghost" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; background: white; border: 1px solid #d1d5db;" id="addAllStudentsBtn">Wszyscy Uczniowie</button>
+                        <select id="classSelectDropdown" class="input-control" style="width: auto; padding: 0.25rem 2rem 0.25rem 0.75rem; font-size: 0.875rem; height: auto; min-height: 32px;">
+                            <option value="">-- Wybierz klasę --</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; height: 32px;" id="addClassBtn">Dodaj całą klasę</button>
+                    </div>
+
                     <!-- dane odbiorców zakodowane jako JSON w data-attribute -->
                     <div id="recipientsData"
                          th:attr="data-recipients=${recipientsJson}"
@@ -265,6 +276,46 @@
                     searchInput.focus();
                 }
             });
+
+            // Logika masowego dodawania odbiorców (jeśli przyciski istnieją w DOM)
+            const addAllTeachersBtn = document.getElementById('addAllTeachersBtn');
+            const addAllStudentsBtn = document.getElementById('addAllStudentsBtn');
+            const classSelectDropdown = document.getElementById('classSelectDropdown');
+            const addClassBtn = document.getElementById('addClassBtn');
+
+            if (classSelectDropdown) {
+                // Zbierz wszystkie unikalne klasy z odbiorców
+                const classes = new Set();
+                recipients.forEach(r => {
+                    if (r.klasa && r.klasa.trim() !== '') {
+                        classes.add(r.klasa);
+                    }
+                });
+                
+                // Wypełnij dropdown klasami
+                Array.from(classes).sort().forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c;
+                    option.textContent = 'Klasa ' + c;
+                    classSelectDropdown.appendChild(option);
+                });
+
+                addAllTeachersBtn.addEventListener('click', () => {
+                    recipients.filter(r => r.role === 'Nauczyciel').forEach(r => addRecipient(r));
+                });
+
+                addAllStudentsBtn.addEventListener('click', () => {
+                    recipients.filter(r => r.role === 'Uczeń').forEach(r => addRecipient(r));
+                });
+
+                addClassBtn.addEventListener('click', () => {
+                    const selectedClass = classSelectDropdown.value;
+                    if (selectedClass) {
+                        recipients.filter(r => r.klasa === selectedClass).forEach(r => addRecipient(r));
+                        classSelectDropdown.value = ''; // Reset wyboru
+                    }
+                });
+            }
         })();
     </script>
 

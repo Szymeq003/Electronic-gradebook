@@ -21,7 +21,22 @@ public class SubjectController {
     private final TeacherService teacherService;
 
     @GetMapping
-    public String listSubjects(Model model) {
+    public String listSubjects(Model model, org.springframework.security.core.Authentication authentication) {
+        String backUrl = "/admin";
+        String backText = "← Powrót do panelu admina";
+
+        if (authentication != null) {
+            if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SECRETARY"))) {
+                backUrl = "/secretary/dashboard";
+                backText = "← Powrót do sekretariatu";
+            } else if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DIRECTOR"))) {
+                backUrl = "/director/dashboard";
+                backText = "← Powrót do panelu dyrektora";
+            }
+        }
+
+        model.addAttribute("backUrl", backUrl);
+        model.addAttribute("backText", backText);
         model.addAttribute("subjects", subjectService.findAll());
         return "subjects";
     }

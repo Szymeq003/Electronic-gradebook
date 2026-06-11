@@ -20,7 +20,17 @@ public class TeacherController {
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
-    public String index(Model model) {
+    public String index(Model model, org.springframework.security.core.Authentication authentication) {
+        String backUrl = "/admin";
+        String backText = "← Powrót do panelu admina";
+        
+        if (authentication != null && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_DIRECTOR"))) {
+            backUrl = "/director/dashboard";
+            backText = "← Powrót do panelu dyrektora";
+        }
+
+        model.addAttribute("backUrl", backUrl);
+        model.addAttribute("backText", backText);
         model.addAttribute("teachers", teacherService.findAll());
         return "index";
     }

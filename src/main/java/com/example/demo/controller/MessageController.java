@@ -110,6 +110,7 @@ public class MessageController {
         model.addAttribute("roleNames", roleNames);
         model.addAttribute("messageService", messageService);
         model.addAttribute("dashboardUrl", getDashboardUrl(currentUser));
+        model.addAttribute("currentUserRole", currentUser.getRole().name());
 
         List<Map<String, String>> recipientsList = recipients.stream()
             .map(r -> {
